@@ -43,25 +43,25 @@ class NotificationOutput(BaseHookOutput):
     """
 
     def acknowledge(self, message: Optional[str]) -> NoReturn:  # type: ignore
-        """Acknowledge the notification (exit 0).
+        """Acknowledge the notification (exit code 0).
 
         Args:
-            message(Optional[str]): Message shown to the user(default: None)
+            message(Optional[str]): Message shown to the user in transcript (default: None)
         """
         self._success(message)
 
-    def exit_block(self, reason: str) -> NoReturn:
-        """Exit with blocking error (exit 2).
-
-        Args:
-            reason(str): Blocking reason shown to the user, not to Claude
-        """
-        self._block(reason)
-
-    def exit_error(self, message: str) -> NoReturn:
-        """Report error and Exit with blocking error (exit 1).
+    def exit_block(self, message: str) -> NoReturn:
+        """Exit with blocking error (exit code 2). Same as exit_non_block()
 
         Args:
             message(str): Message shown to the user
+        """
+        self._block(message)
+
+    def exit_non_block(self, message: str) -> NoReturn:
+        """Exit with non-blocking error (exit code 1). Same as exit_block()
+
+        Args:
+            message (str): Message shown to the user
         """
         self._error(message)

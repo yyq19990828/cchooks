@@ -103,14 +103,22 @@ class PostToolUseOutput(BaseHookOutput):
         """Exit with success (exit code 0).
 
         Args:
-            message (Optional[str]): Message shown to the user (default: None)
+            message (Optional[str]): Message shown to the user in transcript (default: None)
         """
         self._success(message)
 
-    def exit_block(self, message: str) -> NoReturn:
+    def exit_block(self, reason: str) -> NoReturn:
         """Exit with blocking error (exit code 2).
 
         Args:
-            message (str): Reason shown to Claude for further reasoning
+            reason (str): Reason shown to Claude for further reasoning
         """
-        self._block(message)
+        self._block(reason)
+
+    def exit_non_block(self, message: str) -> NoReturn:
+        """Exit with non-blocking error (exit code 1).
+
+        Args:
+            message (str): Message shown to the user
+        """
+        self._error(message)
