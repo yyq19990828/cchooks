@@ -1,7 +1,5 @@
 """Tests for PreCompactContext and PreCompactOutput."""
 
-import json
-from io import StringIO
 from unittest.mock import patch
 
 import pytest
@@ -178,7 +176,7 @@ class TestPreCompactOutput:
             context.output.exit_block("Prevent compaction")
             mock_exit.assert_called_once_with(2)
 
-    def test_acknowledge(self):
+    def test_exit_non_block(self):
         """Test simple block method."""
         data = {
             "hook_event_name": "PreCompact",
@@ -191,23 +189,7 @@ class TestPreCompactOutput:
         context = PreCompactContext(data)
 
         with patch("sys.exit") as mock_exit:
-            context.output.acknowledge("Compaction success")
-            mock_exit.assert_called_once_with(0)
-
-    def test_exit_error(self):
-        """Test simple block method."""
-        data = {
-            "hook_event_name": "PreCompact",
-            "session_id": "test-123",
-            "transcript_path": "/tmp/transcript.json",
-            "trigger": "auto",
-            "custom_instructions": "",
-        }
-
-        context = PreCompactContext(data)
-
-        with patch("sys.exit") as mock_exit:
-            context.output.exit_error("No need for compaction")
+            context.output.exit_non_block("No need for compaction")
             mock_exit.assert_called_once_with(1)
 
 
