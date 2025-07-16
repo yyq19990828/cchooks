@@ -24,7 +24,11 @@ class PreCompactContext(BaseHookContext):
 
     @property
     def trigger(self) -> PreCompactTrigger:
-        """Get the compact trigger type."""
+        """Get the compact trigger type.
+
+        "manual" means explicitly triggered by user, with @custom_instructions
+        "auto" means triggered by Claude itself, while @custom_instructions is empty
+        """
         return str(self._input_data["trigger"])  # type: ignore
 
     @property
@@ -67,4 +71,3 @@ class PreCompactOutput(BaseHookOutput):
             message(str): Message shown to the user
         """
         self.error(message)
-

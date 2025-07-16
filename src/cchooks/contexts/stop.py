@@ -23,7 +23,7 @@ class StopContext(BaseHookContext):
 
     @property
     def stop_hook_active(self) -> bool:
-        """Get whether stop hook is already active."""
+        """stop_hook_active is true when Claude Code is already continuing as a result of a stop hook"""
         return bool(self._input_data["stop_hook_active"])
 
     @property
