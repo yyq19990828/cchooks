@@ -58,7 +58,7 @@ class PreToolUseOutput(BaseHookOutput):
         print(json.dumps(output), file=sys.stdout)
 
     def continue_approve(self, reason: str, suppress_output: bool = False) -> None:
-        """Continue processing and Approve the tool execution with JSON response.
+        """Bypass Claude permission system and Approve the tool execution with JSON response.
 
         Args:
             reason (str): Reason shown to the user, not shown to Clade
@@ -80,7 +80,7 @@ class PreToolUseOutput(BaseHookOutput):
         print(json.dumps(output), file=sys.stdout)
 
     def continue_direct(self, suppress_output: bool = False) -> None:
-        """Continue processing and Do nothing with JSON response.
+        """Continue processing and Lead to Claude permission system with JSON response.
 
         Args:
             suppress_output (bool): Hide stdout from transcript mode (default: False)
@@ -103,4 +103,3 @@ class PreToolUseOutput(BaseHookOutput):
             message (str): shown to Clade for further reasoning
         """
         self.block(message)
-
