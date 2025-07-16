@@ -23,30 +23,32 @@ Hook Types:
     - PreCompact: Runs before transcript compaction
 """
 
+from typing import Union, TextIO
+import sys
+
 from .contexts import (
     BaseHookContext,
     BaseHookOutput,
-    PreToolUseContext,
-    PreToolUseOutput,
-    PostToolUseContext,
-    PostToolUseOutput,
     NotificationContext,
     NotificationOutput,
+    PostToolUseContext,
+    PostToolUseOutput,
+    PreCompactContext,
+    PreCompactOutput,
+    PreToolUseContext,
+    PreToolUseOutput,
     StopContext,
     StopOutput,
     SubagentStopContext,
     SubagentStopOutput,
-    PreCompactContext,
-    PreCompactOutput,
 )
 from .exceptions import (
     CCHooksError,
     HookValidationError,
-    ParseError,
     InvalidHookTypeError,
+    ParseError,
 )
 from .utils import read_json_from_stdin, validate_required_fields
-from typing import Union
 
 # Type alias for all possible context types
 HookContext = Union[
@@ -69,7 +71,7 @@ _HOOK_TYPE_MAP: dict[str, type[HookContext]] = {
 }
 
 
-def create_context() -> HookContext:
+def create_context(stdin: TextIO = sys.stdin) -> HookContext:
     """Create appropriate context based on input JSON.
 
     Reads JSON from stdin and automatically detects the hook type based on
@@ -83,7 +85,7 @@ def create_context() -> HookContext:
         InvalidHookTypeError: If hook_event_name is not recognized
         HookValidationError: If required fields are missing
     """
-    input_data = read_json_from_stdin()
+    input_data = read_json_from_stdin(stdin)
 
     hook_event_name = input_data.get("hook_event_name")
     if not hook_event_name:
@@ -125,4 +127,3 @@ __all__ = [
     # Type aliases
     "HookContext",
 ]
-
