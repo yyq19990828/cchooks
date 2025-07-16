@@ -19,7 +19,6 @@ help: ## Show this help message
 setup: ## Install development dependencies and setup environment
 	@echo "Setting up development environment..."
 	@uv sync
-	@uv pip install -e ".[dev]"
 	@echo "Development environment ready!"
 
 .PHONY: lock
@@ -114,7 +113,7 @@ clean-all: clean ## Clean everything including virtual environment
 .PHONY: install-dev
 install-dev: ## Install package in development mode
 	@echo "Installing in development mode..."
-	@uv pip install -e ".[dev]"
+	@uv pip install -e "."
 	@echo "Development installation complete!"
 
 .PHONY: deps-tree
