@@ -67,3 +67,7 @@ if isinstance(c, PreToolUseContext):
 - `src/cchooks/contexts/pre_tool_use.py`: Most complex hook with approval decisions
 - `src/cchooks/types.py`: Complete type system for Claude Code integration
 - `docs/what-is-cc-hook.md`: Comprehensive documentation of Claude Code hooks
+
+## Development Best Practices
+
+- When generating git commit messages, follow the patterns like "feat: " "fix: " "docs: " "refactor: " and other best practice for this.
