@@ -1,7 +1,6 @@
 """Tests for type definitions in cchooks.types module."""
 
 import pytest
-from typing import get_type_hints
 
 from cchooks.types import (
     HookEventType,
@@ -128,4 +127,3 @@ class TestTypeCompleteness:
         }
         actual_tools = set(ToolName.__args__)
         assert expected_tools == actual_tools
-

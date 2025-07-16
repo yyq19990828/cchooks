@@ -11,8 +11,8 @@ SAMPLE_PRE_TOOL_USE_WRITE = {
     "tool_name": "Write",
     "tool_input": {
         "file_path": "/Users/user/project/src/main.py",
-        "content": "def hello():\n    print('Hello, World!')\n"
-    }
+        "content": "def hello():\n    print('Hello, World!')\n",
+    },
 }
 
 SAMPLE_PRE_TOOL_USE_BASH = {
@@ -22,8 +22,8 @@ SAMPLE_PRE_TOOL_USE_BASH = {
     "tool_name": "Bash",
     "tool_input": {
         "command": "ls -la /tmp",
-        "description": "List temporary directory contents"
-    }
+        "description": "List temporary directory contents",
+    },
 }
 
 SAMPLE_PRE_TOOL_USE_DANGEROUS = {
@@ -31,10 +31,7 @@ SAMPLE_PRE_TOOL_USE_DANGEROUS = {
     "session_id": "sess_abc123def456",
     "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
     "tool_name": "Bash",
-    "tool_input": {
-        "command": "rm -rf /",
-        "description": "Dangerous command"
-    }
+    "tool_input": {"command": "rm -rf /", "description": "Dangerous command"},
 }
 
 SAMPLE_POST_TOOL_USE_SUCCESS = {
@@ -44,12 +41,12 @@ SAMPLE_POST_TOOL_USE_SUCCESS = {
     "tool_name": "Write",
     "tool_input": {
         "file_path": "/Users/user/project/src/main.py",
-        "content": "def hello():\n    print('Hello, World!')\n"
+        "content": "def hello():\n    print('Hello, World!')\n",
     },
     "tool_response": {
         "success": True,
-        "content": "File written successfully to /Users/user/project/src/main.py"
-    }
+        "content": "File written successfully to /Users/user/project/src/main.py",
+    },
 }
 
 SAMPLE_POST_TOOL_USE_ERROR = {
@@ -59,47 +56,47 @@ SAMPLE_POST_TOOL_USE_ERROR = {
     "tool_name": "Write",
     "tool_input": {
         "file_path": "/etc/protected_file.txt",
-        "content": "Attempting to write to protected file"
+        "content": "Attempting to write to protected file",
     },
     "tool_response": {
         "success": False,
-        "error": "Permission denied: /etc/protected_file.txt"
-    }
+        "error": "Permission denied: /etc/protected_file.txt",
+    },
 }
 
 SAMPLE_NOTIFICATION_WARNING = {
     "hook_event_name": "Notification",
     "session_id": "sess_abc123def456",
     "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
-    "message": "Permission required: User needs to approve file modification in /etc/hosts"
+    "message": "Permission required: User needs to approve file modification in /etc/hosts",
 }
 
 SAMPLE_NOTIFICATION_INFO = {
     "hook_event_name": "Notification",
     "session_id": "sess_abc123def456",
     "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
-    "message": "Auto-formatting applied to /Users/user/project/src/utils.py"
+    "message": "Auto-formatting applied to /Users/user/project/src/utils.py",
 }
 
 SAMPLE_STOP_WITH_HOOK = {
     "hook_event_name": "Stop",
     "session_id": "sess_abc123def456",
     "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
-    "stop_hook_active": True
+    "stop_hook_active": True,
 }
 
 SAMPLE_STOP_NO_HOOK = {
     "hook_event_name": "Stop",
     "session_id": "sess_abc123def456",
     "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
-    "stop_hook_active": False
+    "stop_hook_active": False,
 }
 
 SAMPLE_SUBAGENT_STOP_WITH_HOOK = {
     "hook_event_name": "SubagentStop",
     "session_id": "sess_abc123def456",
     "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
-    "stop_hook_active": True
+    "stop_hook_active": True,
 }
 
 SAMPLE_PRE_COMPACT_MANUAL = {
@@ -107,7 +104,7 @@ SAMPLE_PRE_COMPACT_MANUAL = {
     "session_id": "sess_abc123def456",
     "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
     "trigger": "manual",
-    "custom_instructions": "Preserve security-related decisions and tool usage patterns"
+    "custom_instructions": "Preserve security-related decisions and tool usage patterns",
 }
 
 SAMPLE_PRE_COMPACT_AUTO = {
@@ -115,37 +112,35 @@ SAMPLE_PRE_COMPACT_AUTO = {
     "session_id": "sess_abc123def456",
     "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
     "trigger": "auto",
-    "custom_instructions": ""
+    "custom_instructions": "",
 }
 
 # Invalid data for testing error handling
 INVALID_MISSING_HOOK_EVENT = {
     "session_id": "sess_abc123def456",
-    "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json"
+    "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
 }
 
 INVALID_UNKNOWN_HOOK_EVENT = {
     "hook_event_name": "UnknownHook",
     "session_id": "sess_abc123def456",
-    "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json"
+    "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
 }
 
 INVALID_PRE_TOOL_USE_MISSING_TOOL_NAME = {
     "hook_event_name": "PreToolUse",
     "session_id": "sess_abc123def456",
     "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
-    "tool_input": {
-        "file_path": "/tmp/test.txt",
-        "content": "test"
-    }
+    "tool_input": {"file_path": "/tmp/test.txt", "content": "test"},
 }
 
 INVALID_PRE_TOOL_USE_MISSING_TOOL_INPUT = {
     "hook_event_name": "PreToolUse",
     "session_id": "sess_abc123def456",
     "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
-    "tool_name": "Write"
+    "tool_name": "Write",
 }
+
 
 def get_all_valid_samples():
     """Return all valid sample data for parameterized testing."""
@@ -159,9 +154,11 @@ def get_all_valid_samples():
         ("PreCompact", SAMPLE_PRE_COMPACT_MANUAL),
     ]
 
+
 def get_invalid_samples():
     """Return invalid sample data for error testing."""
     return [
         ("missing_hook_event", INVALID_MISSING_HOOK_EVENT),
         ("unknown_hook_event", INVALID_UNKNOWN_HOOK_EVENT),
     ]
+

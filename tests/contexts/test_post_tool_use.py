@@ -1,19 +1,18 @@
 """Tests for PostToolUseContext and PostToolUseOutput."""
 
 import json
-import sys
 from io import StringIO
 from unittest.mock import patch
 
 import pytest
 
-from cchooks.contexts.post_tool_use import PostToolUseContext, PostToolUseOutput
+from cchooks.contexts.post_tool_use import PostToolUseContext
 from cchooks.exceptions import HookValidationError
 
 
 class TestPostToolUseContext:
     """Test PostToolUseContext functionality."""
-    
+
     def test_valid_context_creation(self):
         """Test creating context with valid data."""
         data = {
@@ -21,31 +20,25 @@ class TestPostToolUseContext:
             "session_id": "test-session-123",
             "transcript_path": "/tmp/transcript.json",
             "tool_name": "Write",
-            "tool_input": {
-                "file_path": "/tmp/test.txt",
-                "content": "Hello World"
-            },
-            "tool_response": {
-                "success": True,
-                "content": "File written successfully"
-            }
+            "tool_input": {"file_path": "/tmp/test.txt", "content": "Hello World"},
+            "tool_response": {"success": True, "content": "File written successfully"},
         }
-        
+
         context = PostToolUseContext(data)
-        
+
         assert context.hook_event_name == "PostToolUse"
         assert context.session_id == "test-session-123"
         assert context.transcript_path == "/tmp/transcript.json"
         assert context.tool_name == "Write"
         assert context.tool_input == {
             "file_path": "/tmp/test.txt",
-            "content": "Hello World"
+            "content": "Hello World",
         }
         assert context.tool_response == {
             "success": True,
-            "content": "File written successfully"
+            "content": "File written successfully",
         }
-    
+
     def test_context_with_error_response(self):
         """Test context creation with error response."""
         data = {
@@ -53,34 +46,34 @@ class TestPostToolUseContext:
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
             "tool_name": "Write",
-            "tool_input": {
-                "file_path": "/etc/protected.txt",
-                "content": "attempt"
-            },
-            "tool_response": {
-                "success": False,
-                "error": "Permission denied"
-            }
+            "tool_input": {"file_path": "/etc/protected.txt", "content": "attempt"},
+            "tool_response": {"success": False, "error": "Permission denied"},
         }
-        
+
         context = PostToolUseContext(data)
         assert context.tool_response["success"] is False
         assert context.tool_response["error"] == "Permission denied"
-    
+
     def test_context_validation_missing_required_fields(self):
         """Test context validation with missing required fields."""
         invalid_cases = [
             ({}, ["hook_event_name", "tool_name", "tool_input", "tool_response"]),
-            ({"hook_event_name": "PostToolUse"}, ["tool_name", "tool_input", "tool_response"]),
-            ({"tool_name": "Write"}, ["hook_event_name", "tool_input", "tool_response"]),
+            (
+                {"hook_event_name": "PostToolUse"},
+                ["tool_name", "tool_input", "tool_response"],
+            ),
+            (
+                {"tool_name": "Write"},
+                ["hook_event_name", "tool_input", "tool_response"],
+            ),
             ({"tool_input": {}}, ["hook_event_name", "tool_name", "tool_response"]),
             ({"tool_response": {}}, ["hook_event_name", "tool_name", "tool_input"]),
         ]
-        
+
         for data, missing_fields in invalid_cases:
             with pytest.raises(HookValidationError) as exc_info:
                 PostToolUseContext(data)
-            
+
             error_msg = str(exc_info.value)
             for field in missing_fields:
                 assert f"Missing required field: {field}" in error_msg
@@ -88,118 +81,118 @@ class TestPostToolUseContext:
 
 class TestPostToolUseOutput:
     """Test PostToolUseOutput functionality."""
-    
+
     def test_simple_approve(self):
         """Test simple approve method."""
         data = {
             "hook_event_name": "PostToolUse",
             "tool_name": "Write",
             "tool_input": {"file_path": "/tmp/test.txt", "content": "test"},
-            "tool_response": {"success": True, "content": "success"}
+            "tool_response": {"success": True, "content": "success"},
         }
-        
+
         context = PostToolUseContext(data)
-        
-        with patch('sys.exit') as mock_exit:
+
+        with patch("sys.exit") as mock_exit:
             context.output.simple_approve("Operation completed successfully")
             mock_exit.assert_called_once_with(0)
-    
+
     def test_simple_block(self):
         """Test simple block method."""
         data = {
             "hook_event_name": "PostToolUse",
             "tool_name": "Write",
             "tool_input": {"file_path": "/tmp/test.txt", "content": "test"},
-            "tool_response": {"success": False, "error": "Operation failed"}
+            "tool_response": {"success": False, "error": "Operation failed"},
         }
-        
+
         context = PostToolUseContext(data)
-        
-        with patch('sys.exit') as mock_exit:
+
+        with patch("sys.exit") as mock_exit:
             context.output.simple_block("Post-processing detected issues")
             mock_exit.assert_called_once_with(2)
-    
+
     def test_continue_block(self):
         """Test continue block method."""
         data = {
             "hook_event_name": "PostToolUse",
             "tool_name": "Write",
             "tool_input": {"file_path": "/tmp/test.py", "content": "print('hello')"},
-            "tool_response": {"success": True, "content": "File written"}
+            "tool_response": {"success": True, "content": "File written"},
         }
-        
+
         context = PostToolUseContext(data)
-        
-        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
             context.output.continue_block("Python file written, consider formatting")
-            
+
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
-            
+
             assert result["continue"] is True
             assert result["decision"] == "block"
             assert result["reason"] == "Python file written, consider formatting"
-    
+
     def test_stop_processing(self):
         """Test stop processing method."""
         data = {
             "hook_event_name": "PostToolUse",
             "tool_name": "Write",
             "tool_input": {"file_path": "/tmp/test.txt", "content": "test"},
-            "tool_response": {"success": False, "error": "Security violation"}
+            "tool_response": {"success": False, "error": "Security violation"},
         }
-        
+
         context = PostToolUseContext(data)
-        
-        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
             context.output.stop_processing("Security violation detected")
-            
+
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
-            
+
             assert result["continue"] is False
             assert result["stopReason"] == "Security violation detected"
-    
+
     def test_continue_direct(self):
         """Test continue direct method."""
         data = {
             "hook_event_name": "PostToolUse",
             "tool_name": "Write",
             "tool_input": {"file_path": "/tmp/test.txt", "content": "test"},
-            "tool_response": {"success": True, "content": "success"}
+            "tool_response": {"success": True, "content": "success"},
         }
-        
+
         context = PostToolUseContext(data)
-        
-        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
             context.output.continue_direct()
-            
+
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
-            
+
             assert result["continue"] is True
             assert "decision" not in result  # Should not include decision
-    
+
     def test_output_suppression(self):
         """Test output suppression functionality."""
         data = {
             "hook_event_name": "PostToolUse",
             "tool_name": "Write",
             "tool_input": {"file_path": "/tmp/test.py", "content": "print('hello')"},
-            "tool_response": {"success": True, "content": "File written"}
+            "tool_response": {"success": True, "content": "File written"},
         }
-        
+
         context = PostToolUseContext(data)
-        
+
         # Test suppress_output=True
-        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
             context.output.continue_direct(suppress_output=True)
             assert mock_stdout.getvalue().strip() == ""
 
 
 class TestPostToolUseRealWorldScenarios:
     """Test real-world usage scenarios."""
-    
+
     def test_auto_format_python_files(self):
         """Test auto-formatting Python files after write."""
         data = {
@@ -209,24 +202,24 @@ class TestPostToolUseRealWorldScenarios:
             "tool_name": "Write",
             "tool_input": {
                 "file_path": "/project/src/utils.py",
-                "content": "def test(): pass"
+                "content": "def test(): pass",
             },
-            "tool_response": {"success": True, "content": "File written"}
+            "tool_response": {"success": True, "content": "File written"},
         }
-        
+
         context = PostToolUseContext(data)
-        
+
         # Test that we can access file extension
         file_path = context.tool_input["file_path"]
-        assert file_path.endswith('.py')
-        
+        assert file_path.endswith(".py")
+
         # Test continue_direct for auto-formatting
-        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
             context.output.continue_direct(suppress_output=True)
-            
+
             output = mock_stdout.getvalue().strip()
             assert output == ""
-    
+
     def test_log_operations(self):
         """Test logging operations after tool use."""
         operations = [
@@ -234,7 +227,7 @@ class TestPostToolUseRealWorldScenarios:
             ("Bash", {"command": "mkdir /tmp/test"}, "Directory created"),
             ("Read", {"file_path": "/tmp/config.json"}, "Config read"),
         ]
-        
+
         for tool_name, tool_input, expected_msg in operations:
             data = {
                 "hook_event_name": "PostToolUse",
@@ -242,16 +235,16 @@ class TestPostToolUseRealWorldScenarios:
                 "transcript_path": "/tmp/transcript.json",
                 "tool_name": tool_name,
                 "tool_input": tool_input,
-                "tool_response": {"success": True, "content": expected_msg}
+                "tool_response": {"success": True, "content": expected_msg},
             }
-            
+
             context = PostToolUseContext(data)
-            
+
             # Test that we can process the operation
             assert context.tool_name == tool_name
             assert context.tool_input == tool_input
             assert context.tool_response["success"] is True
-    
+
     def test_error_notification(self):
         """Test processing error notifications."""
         data = {
@@ -262,25 +255,25 @@ class TestPostToolUseRealWorldScenarios:
             "tool_input": {"file_path": "/protected/file.txt", "content": "test"},
             "tool_response": {
                 "success": False,
-                "error": "Permission denied: /protected/file.txt"
-            }
+                "error": "Permission denied: /protected/file.txt",
+            },
         }
-        
+
         context = PostToolUseContext(data)
-        
+
         # Test that we can access error information
         assert context.tool_response["success"] is False
         assert "Permission denied" in context.tool_response["error"]
-        
+
         # Test error handling
-        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
             context.output.continue_block("Write failed due to permissions")
-            
+
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
             assert result["continue"] is True
             assert "permissions" in result["reason"]
-    
+
     def test_cleanup_operations(self):
         """Test cleanup operations after tool use."""
         data = {
@@ -289,16 +282,17 @@ class TestPostToolUseRealWorldScenarios:
             "transcript_path": "/tmp/transcript.json",
             "tool_name": "Write",
             "tool_input": {"file_path": "/tmp/temp_file.txt", "content": "temporary"},
-            "tool_response": {"success": True, "content": "Temporary file created"}
+            "tool_response": {"success": True, "content": "Temporary file created"},
         }
-        
+
         context = PostToolUseContext(data)
-        
+
         # Test cleanup decision
         file_path = context.tool_input["file_path"]
         if "/tmp/" in file_path:
-            with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
+            with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
                 context.output.continue_direct(suppress_output=True)
-                
+
                 # Could trigger cleanup here
                 assert mock_stdout.getvalue().strip() == ""
+

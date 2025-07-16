@@ -1,7 +1,6 @@
 """Tests for the main create_context() function."""
 
 import json
-import sys
 from io import StringIO
 from unittest.mock import patch
 
@@ -228,4 +227,3 @@ class TestCreateContextIntegration:
             assert hasattr(context.output, "continue_block")
             assert hasattr(context.output, "continue_direct")
             assert hasattr(context.output, "stop_processing")
-
