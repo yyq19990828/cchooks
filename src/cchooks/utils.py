@@ -95,4 +95,3 @@ def safe_get_dict(
     default = default or {}
     value = data.get(key, default)
     return dict(value) if isinstance(value, dict) else default
-

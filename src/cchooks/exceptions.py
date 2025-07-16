@@ -23,4 +23,3 @@ class InvalidHookTypeError(CCHooksError):
     """Raised when an invalid hook type is encountered."""
 
     pass
-

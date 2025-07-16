@@ -13,7 +13,7 @@ __all__ = [
     "BaseHookOutput",
     "PreToolUseContext",
     "PreToolUseOutput",
-    "PostToolUseContext", 
+    "PostToolUseContext",
     "PostToolUseOutput",
     "NotificationContext",
     "NotificationOutput",

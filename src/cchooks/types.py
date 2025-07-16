@@ -55,4 +55,3 @@ BaseOutput = Dict[str, bool | str]
 PreToolUseOutput = Dict[str, bool | str]  # + decision, reason
 PostToolUseOutput = Dict[str, bool | str]  # + decision, reason
 StopOutput = Dict[str, bool | str]  # + decision, reason
-
