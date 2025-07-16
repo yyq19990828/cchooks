@@ -115,7 +115,7 @@ class TestNotificationOutput:
         context = NotificationContext(data)
 
         with patch("sys.exit") as mock_exit:
-            context.output.simple_success("Notification processed")
+            context.output.acknowledge("Notification processed")
             mock_exit.assert_called_once_with(0)
 
     def test_no_continue_method_available(self):
@@ -129,8 +129,8 @@ class TestNotificationOutput:
 
         context = NotificationContext(data)
 
-        assert hasattr(context.output, "simple_success")
-        assert hasattr(context.output, "simple_block")
+        assert hasattr(context.output, "acknowledge")
+        assert hasattr(context.output, "exit_block")
         assert not hasattr(context.output, "continue_approve")
         assert not hasattr(context.output, "continue_block")
         assert not hasattr(context.output, "continue_direct")
@@ -313,5 +313,5 @@ class TestNotificationRealWorldScenarios:
 
             # Test simple approve (notification hooks always approve)
             with patch("sys.exit") as mock_exit:
-                context.output.simple_success("success")
+                context.output.acknowledge("success")
                 mock_exit.assert_called_once_with(0)

@@ -104,12 +104,12 @@ if isinstance(context, PreToolUseContext):
 - `tool_input: Dict[str, Any]` - Parameters being passed to the tool
 
 **Output Methods:**
-- `stop_processing(stop_reason: str, suppress_output: bool = False)` - Stop and block tool
-- `continue_approve(reason: str, suppress_output: bool = False)` - Bypass Claude permission and approve
-- `continue_block(reason: str, suppress_output: bool = False)` - Continue but block tool
-- `continue_direct(suppress_output: bool = False)` - Continue to Claude permission system
-- `simple_approve(message: Optional[str] = None) -> NoReturn` - Simple approve (exit 0)
-- `simple_block(message: str) -> NoReturn` - Simple block (exit 2)
+- `approve(reason: str = "", suppress_output: bool = False)` - Approve tool execution
+- `block(reason: str, suppress_output: bool = False)` - Block tool execution
+- `defer(suppress_output: bool = False)` - Defer to Claude's permission system
+- `halt(reason: str, suppress_output: bool = False)` - Stop all processing immediately
+- `exit_success(message: Optional[str] = None) -> NoReturn` - Exit 0 (success)
+- `exit_block(message: str) -> NoReturn` - Exit 2 (blocking error)
 
 ### `PostToolUseContext`
 
@@ -133,11 +133,12 @@ if isinstance(context, PostToolUseContext):
 - `tool_response: Dict[str, Any]` - Response data from the tool execution
 
 **Output Methods:**
-- `stop_processing(stop_reason: str, suppress_output: bool = False)` - Stop processing
-- `continue_block(reason: str, suppress_output: bool = False)` - Continue but prompt Claude
-- `continue_direct(suppress_output: bool = False)` - Continue without action
-- `simple_approve(message: Optional[str] = None) -> NoReturn` - Simple approve (exit 0)
-- `simple_block(message: str) -> NoReturn` - Simple block (exit 2)
+- `accept(suppress_output: bool = False)` - Accept tool results
+- `challenge(reason: str, suppress_output: bool = False)` - Challenge tool results
+- `ignore(suppress_output: bool = False)` - Ignore tool results
+- `halt(reason: str, suppress_output: bool = False)` - Stop all processing immediately
+- `exit_success(message: Optional[str] = None) -> NoReturn` - Exit 0 (success)
+- `exit_block(message: str) -> NoReturn` - Exit 2 (blocking error)
 
 ### `NotificationContext`
 
@@ -156,9 +157,10 @@ if isinstance(context, NotificationContext):
 - `message: str` - Notification message content
 
 **Output Methods:**
-- `simple_success(message: Optional[str]) -> NoReturn` - Success response (exit 0)
-- `simple_block(reason: str) -> NoReturn` - Block response (exit 2)
-- `simple_error(message: str) -> NoReturn` - Error response (exit 1)
+- `acknowledge(message: Optional[str]) -> NoReturn` - Acknowledge and process information
+- `exit_success(message: Optional[str]) -> NoReturn` - Exit 0 (success)
+- `exit_block(message: str) -> NoReturn` - Exit 2 (blocking error)
+- `exit_error(message: str) -> NoReturn` - Exit 1 (non-blocking error)
 
 > `simple_error` and `simple_block` behavior of `Notification Hook` and `PreCompact Hook` is actually the same. All of them show `reason` or `message` to the user and Claude will keep going. And `simple_success` will show `message` in transcript (default hidden to the user). For details see [official docs](https://docs.anthropic.com/en/docs/claude-code/hooks#simple%3A-exit-code)
 
@@ -182,11 +184,11 @@ if isinstance(context, StopContext):
 - `stop_hook_active: bool` - Whether stop hook is already active
 
 **Output Methods:**
-- `stop_processing(stop_reason: str, suppress_output: bool = False)` - Stop processing
-- `continue_block(reason: str, suppress_output: bool = False)` - Prevent stopping and prompt Claude
-- `continue_direct(suppress_output: bool = False)` - Allow Claude to stop
-- `simple_approve(message: Optional[str] = None) -> NoReturn` - Simple approve (exit 0)
-- `simple_block(message: str) -> NoReturn` - Simple block (exit 2)
+- `allow(suppress_output: bool = False)` - Allow Claude to stop
+- `prevent(reason: str, suppress_output: bool = False)` - Prevent Claude from stopping
+- `halt(reason: str, suppress_output: bool = False)` - Stop all processing immediately
+- `exit_success(message: Optional[str] = None) -> NoReturn` - Exit 0 (success)
+- `exit_block(message: str) -> NoReturn` - Exit 2 (blocking error)
 
 ### `SubagentStopContext`
 
@@ -220,7 +222,7 @@ if isinstance(context, PreCompactContext):
     if trigger == "manual" and instructions:
         process_custom_instructions(instructions)
 
-    context.output.simple_success("Compaction ready")
+    context.output.acknowledge("Compaction ready")
 ```
 
 **Properties:**
@@ -228,7 +230,10 @@ if isinstance(context, PreCompactContext):
 - `custom_instructions: str` - Custom instructions provided by user
 
 **Output Methods:**
-Same as `NotificationOutput`.
+- `acknowledge(message: Optional[str]) -> NoReturn` - Acknowledge the compaction
+- `exit_success(message: Optional[str]) -> NoReturn` - Exit 0 (success)
+- `exit_block(message: str) -> NoReturn` - Exit 2 (blocking error)
+- `exit_error(message: str) -> NoReturn` - Exit 1 (non-blocking error)
 
 ## Type Definitions
 
@@ -356,9 +361,9 @@ def main():
         # Check for dangerous file operations
         if (context.tool_name == "Write" and
             "config/" in context.tool_input.get("file_path", "")):
-            context.output.simple_block("Config files are protected")
+            context.output.exit_block("Config files are protected")
         else:
-            context.output.simple_approve()
+            context.output.exit_success()
 
 if __name__ == "__main__":
     main()
@@ -383,9 +388,9 @@ def main():
         if tool_name == "Bash":
             command = tool_input.get("command", "")
             if "rm -rf /" in command:
-                context.output.continue_block("Dangerous command detected")
+                context.output.block("Dangerous command detected")
             else:
-                context.output.continue_approve("Command looks safe")
+                context.output.approve("Command looks safe")
 
 if __name__ == "__main__":
     main()
@@ -416,7 +421,7 @@ def main():
             json.dump(log_entry, f)
             f.write("\n")
 
-        context.output.simple_approve("Logged successfully")
+        context.output.exit_success("Logged successfully")
 
 if __name__ == "__main__":
     main()
@@ -439,7 +444,7 @@ def main():
 
         # Some logic to send Desktop Notification
 
-        context.output.simple_success("Desktop Notification Sent!")
+        context.output.acknowledge("Desktop Notification Sent!")
 
 if __name__ == "__main__":
     main()

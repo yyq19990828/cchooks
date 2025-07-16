@@ -146,7 +146,7 @@ class TestPreCompactContext:
 class TestPreCompactOutput:
     """Test PreCompactOutput functionality."""
 
-    def test_simple_approve(self):
+    def test_acknowledge(self):
         """Test simple approve method."""
         data = {
             "hook_event_name": "PreCompact",
@@ -159,10 +159,10 @@ class TestPreCompactOutput:
         context = PreCompactContext(data)
 
         with patch("sys.exit") as mock_exit:
-            context.output.simple_success("Compaction approved")
+            context.output.acknowledge("Compaction approved")
             mock_exit.assert_called_once_with(0)
 
-    def test_simple_block(self):
+    def test_exit_block(self):
         """Test simple block method."""
         data = {
             "hook_event_name": "PreCompact",
@@ -175,10 +175,10 @@ class TestPreCompactOutput:
         context = PreCompactContext(data)
 
         with patch("sys.exit") as mock_exit:
-            context.output.simple_block("Prevent compaction")
+            context.output.exit_block("Prevent compaction")
             mock_exit.assert_called_once_with(2)
 
-    def test_simple_success(self):
+    def test_acknowledge(self):
         """Test simple block method."""
         data = {
             "hook_event_name": "PreCompact",
@@ -191,10 +191,10 @@ class TestPreCompactOutput:
         context = PreCompactContext(data)
 
         with patch("sys.exit") as mock_exit:
-            context.output.simple_success("Compaction success")
+            context.output.acknowledge("Compaction success")
             mock_exit.assert_called_once_with(0)
 
-    def test_simple_error(self):
+    def test_exit_error(self):
         """Test simple block method."""
         data = {
             "hook_event_name": "PreCompact",
@@ -207,7 +207,7 @@ class TestPreCompactOutput:
         context = PreCompactContext(data)
 
         with patch("sys.exit") as mock_exit:
-            context.output.simple_error("No need for compaction")
+            context.output.exit_error("No need for compaction")
             mock_exit.assert_called_once_with(1)
 
 
@@ -250,7 +250,7 @@ class TestPreCompactRealWorldScenarios:
 
         # Test standard auto-compaction
         with patch("sys.exit") as mock_exit:
-            context.output.simple_success("Auto-compaction approved")
+            context.output.acknowledge("Auto-compaction approved")
             mock_exit.assert_called_once_with(0)
 
     def test_prevent_compaction_during_critical_operations(self):
@@ -267,7 +267,7 @@ class TestPreCompactRealWorldScenarios:
 
         # Test preventing compaction
         with patch("sys.exit") as mock_exit:
-            context.output.simple_block("Critical deployment active")
+            context.output.exit_block("Critical deployment active")
             mock_exit.assert_called_once_with(2)
 
     def test_compaction_with_conditional_logic(self):
@@ -298,7 +298,7 @@ class TestPreCompactRealWorldScenarios:
 
             if scenario["should_compact"]:
                 with patch("sys.exit") as mock_exit:
-                    context.output.simple_success(scenario["reason"])
+                    context.output.acknowledge(scenario["reason"])
                     mock_exit.assert_called_once_with(0)
 
     def test_compaction_with_security_focus(self):
@@ -381,9 +381,9 @@ class TestPreCompactRealWorldScenarios:
 
             if workflow["expected_action"] == "approve":
                 with patch("sys.exit") as mock_exit:
-                    context.output.simple_success(f"Approved for {workflow['name']}")
+                    context.output.acknowledge(f"Approved for {workflow['name']}")
                     mock_exit.assert_called_once_with(0)
             else:
                 with patch("sys.exit") as mock_exit:
-                    context.output.simple_block(f"Blocked for {workflow['name']}")
+                    context.output.exit_block(f"Blocked for {workflow['name']}")
                     mock_exit.assert_called_once_with(2)

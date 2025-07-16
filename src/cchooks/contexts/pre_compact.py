@@ -53,24 +53,24 @@ class PreCompactOutput(BaseHookOutput):
     Note: PreCompact hooks cannot make decisions, they can only process.
     """
 
-    def simple_success(self, message: Optional[str]) -> NoReturn:  # type: ignore
-        """Approve with simple exit code (exit 0).
+    def acknowledge(self, message: Optional[str]) -> NoReturn:  # type: ignore
+        """Acknowledge the compaction (exit 0).
 
         Args:
             message(Optional[str]): Message shown to the user(default: None)
         """
         self._success(message)
 
-    def simple_block(self, reason: str) -> NoReturn:
-        """Block with simple exit code (exit 2).
+    def exit_block(self, reason: str) -> NoReturn:
+        """Exit with blocking error (exit 2).
 
         Args:
             reason(str): Blocking reason shown to the user, not to Claude
         """
         self._block(reason)
 
-    def simple_error(self, message: str) -> NoReturn:
-        """Report error and Block with simple exit code (exit 1).
+    def exit_error(self, message: str) -> NoReturn:
+        """Report error and Exit with blocking error (exit 1).
 
         Args:
             message(str): Message shown to the user

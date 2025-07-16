@@ -86,7 +86,7 @@ class TestSubagentStopContext:
 class TestSubagentStopOutput:
     """Test SubagentStopOutput functionality."""
 
-    def test_simple_approve(self):
+    def test_exit_success(self):
         """Test simple approve method."""
         data = {
             "hook_event_name": "SubagentStop",
@@ -98,10 +98,10 @@ class TestSubagentStopOutput:
         context = SubagentStopContext(data)
 
         with patch("sys.exit") as mock_exit:
-            context.output.simple_approve("Allow subagent to stop")
+            context.output.exit_success("Allow subagent to stop")
             mock_exit.assert_called_once_with(0)
 
-    def test_simple_block(self):
+    def test_exit_block(self):
         """Test simple block method."""
         data = {
             "hook_event_name": "SubagentStop",
@@ -113,10 +113,10 @@ class TestSubagentStopOutput:
         context = SubagentStopContext(data)
 
         with patch("sys.exit") as mock_exit:
-            context.output.simple_block("Prevent subagent from stopping")
+            context.output.exit_block("Prevent subagent from stopping")
             mock_exit.assert_called_once_with(2)
 
-    def test_stop_processing(self):
+    def test_halt(self):
         """Test stop processing method."""
         data = {
             "hook_event_name": "SubagentStop",
@@ -128,7 +128,7 @@ class TestSubagentStopOutput:
         context = SubagentStopContext(data)
 
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.stop_processing("Subagent completed all tasks")
+            context.output.halt("Subagent completed all tasks")
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -136,7 +136,7 @@ class TestSubagentStopOutput:
             assert result["continue"] is False
             assert result["stopReason"] == "Subagent completed all tasks"
 
-    def test_continue_block(self):
+    def test_prevent(self):
         """Test continue block method."""
         data = {
             "hook_event_name": "SubagentStop",
@@ -148,7 +148,7 @@ class TestSubagentStopOutput:
         context = SubagentStopContext(data)
 
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.continue_block("Subagent has more work to do")
+            context.output.prevent("Subagent has more work to do")
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -157,7 +157,7 @@ class TestSubagentStopOutput:
             assert result["decision"] == "block"
             assert result["reason"] == "Subagent has more work to do"
 
-    def test_continue_direct(self):
+    def test_allow(self):
         """Test continue direct method."""
         data = {
             "hook_event_name": "SubagentStop",
@@ -169,7 +169,7 @@ class TestSubagentStopOutput:
         context = SubagentStopContext(data)
 
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.continue_direct()
+            context.output.allow()
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -194,7 +194,7 @@ class TestSubagentStopRealWorldScenarios:
 
         # Allow subagent to complete
         with patch("sys.exit") as mock_exit:
-            context.output.simple_approve("Code analysis completed")
+            context.output.exit_success("Code analysis completed")
             mock_exit.assert_called_once_with(0)
 
     def test_test_runner_subagent_completion(self):
@@ -210,7 +210,7 @@ class TestSubagentStopRealWorldScenarios:
 
         # Allow subagent to complete
         with patch("sys.exit") as mock_exit:
-            context.output.simple_approve("All tests executed")
+            context.output.exit_success("All tests executed")
             mock_exit.assert_called_once_with(0)
 
     def test_prevent_subagent_stop_during_processing(self):
@@ -226,7 +226,7 @@ class TestSubagentStopRealWorldScenarios:
 
         # Prevent subagent from stopping
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.continue_block("Subagent still processing data")
+            context.output.prevent("Subagent still processing data")
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -268,11 +268,11 @@ class TestSubagentStopRealWorldScenarios:
 
             if workflow["should_stop"]:
                 with patch("sys.exit") as mock_exit:
-                    context.output.simple_approve(workflow["reason"])
+                    context.output.exit_success(workflow["reason"])
                     mock_exit.assert_called_once_with(0)
             else:
                 with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-                    context.output.continue_block(workflow["reason"])
+                    context.output.prevent(workflow["reason"])
 
                     output = mock_stdout.getvalue().strip()
                     result = json.loads(output)
@@ -291,7 +291,7 @@ class TestSubagentStopRealWorldScenarios:
 
         # Test timeout scenario
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.stop_processing("Subagent timed out after 30 minutes")
+            context.output.halt("Subagent timed out after 30 minutes")
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -311,7 +311,7 @@ class TestSubagentStopRealWorldScenarios:
 
         # Test error recovery
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.stop_processing("Subagent encountered fatal error")
+            context.output.halt("Subagent encountered fatal error")
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)

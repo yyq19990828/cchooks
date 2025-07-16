@@ -59,30 +59,28 @@ class PostToolUseContext(BaseHookContext):
 class PostToolUseOutput(BaseHookOutput):
     """Output handler for PostToolUse hooks."""
 
-    def stop_processing(self, stop_reason: str, suppress_output: bool = False) -> None:
-        """Stop processing with JSON response.
+    def accept(self, suppress_output: bool = False) -> None:
+        """Accept the tool results and continue processing.
 
         Args:
-            stop_reason (str): Stopping reason shown to the user, not shown to Claude
             suppress_output (bool): Hide stdout from transcript mode (default: False)
         """
-        output = self._stop_flow(stop_reason, suppress_output)
-        output.update({"decision": "block", "reason": ""})
+        output = self._continue_flow(suppress_output)
         print(json.dumps(output), file=sys.stdout)
 
-    def continue_block(self, reason: str, suppress_output: bool = False) -> None:
-        """Continue processing but Prompt Claude with JSON response.
+    def challenge(self, reason: str, suppress_output: bool = False) -> None:
+        """Challenge the tool results and prompt Claude for review.
 
         Args:
-            reason (str): Reason shown to Clade for further reasoning
+            reason (str): Reason for challenging, shown to Claude for further reasoning
             suppress_output (bool): Hide stdout from transcript mode (default: False)
         """
         output = self._continue_flow(suppress_output)
         output.update({"decision": "block", "reason": reason})
         print(json.dumps(output), file=sys.stdout)
 
-    def continue_direct(self, suppress_output: bool = False) -> None:
-        """Continue processing and Do nothing with JSON response.
+    def ignore(self, suppress_output: bool = False) -> None:
+        """Ignore the tool results and continue processing.
 
         Args:
             suppress_output (bool): Hide stdout from transcript mode (default: False)
@@ -90,18 +88,29 @@ class PostToolUseOutput(BaseHookOutput):
         output = self._continue_flow(suppress_output)
         print(json.dumps(output), file=sys.stdout)
 
-    def simple_approve(self, message: Optional[str] = None) -> NoReturn:
-        """Approve with simple exit code (exit 0).
+    def halt(self, reason: str, suppress_output: bool = False) -> None:
+        """Stop all processing immediately.
+
+        Args:
+            reason (str): Reason for stopping, shown to user
+            suppress_output (bool): Hide stdout from transcript mode (default: False)
+        """
+        output = self._stop_flow(reason, suppress_output)
+        output.update({"decision": "block", "reason": ""})
+        print(json.dumps(output), file=sys.stdout)
+
+    def exit_success(self, message: Optional[str] = None) -> NoReturn:
+        """Exit with success (exit code 0).
 
         Args:
             message (Optional[str]): Message shown to the user (default: None)
         """
         self._success(message)
 
-    def simple_block(self, message: str) -> NoReturn:
-        """Block with simple exit code (exit 2).
+    def exit_block(self, message: str) -> NoReturn:
+        """Exit with blocking error (exit code 2).
 
         Args:
-            message (str): shown to Clade for further reasoning
+            message (str): Reason shown to Claude for further reasoning
         """
         self._block(message)

@@ -100,7 +100,7 @@ class TestStopContext:
 class TestStopOutput:
     """Test StopOutput functionality."""
 
-    def test_simple_approve_with_stop_hook_active(self):
+    def test_exit_success_with_stop_hook_active(self):
         """Test simple approve when stop hook is active."""
         data = {
             "hook_event_name": "Stop",
@@ -112,10 +112,10 @@ class TestStopOutput:
         context = StopContext(data)
 
         with patch("sys.exit") as mock_exit:
-            context.output.simple_approve("Allow Claude to stop")
+            context.output.exit_success("Allow Claude to stop")
             mock_exit.assert_called_once_with(0)
 
-    def test_simple_approve_with_stop_hook_inactive(self):
+    def test_exit_success_with_stop_hook_inactive(self):
         """Test simple approve when stop hook is inactive."""
         data = {
             "hook_event_name": "Stop",
@@ -127,10 +127,10 @@ class TestStopOutput:
         context = StopContext(data)
 
         with patch("sys.exit") as mock_exit:
-            context.output.simple_approve("Allow stop (hook inactive)")
+            context.output.exit_success("Allow stop (hook inactive)")
             mock_exit.assert_called_once_with(0)
 
-    def test_simple_block(self):
+    def test_exit_block(self):
         """Test simple block method."""
         data = {
             "hook_event_name": "Stop",
@@ -142,10 +142,10 @@ class TestStopOutput:
         context = StopContext(data)
 
         with patch("sys.exit") as mock_exit:
-            context.output.simple_block("Prevent Claude from stopping")
+            context.output.exit_block("Prevent Claude from stopping")
             mock_exit.assert_called_once_with(2)
 
-    def test_stop_processing(self):
+    def test_halt(self):
         """Test stop processing method."""
         data = {
             "hook_event_name": "Stop",
@@ -157,7 +157,7 @@ class TestStopOutput:
         context = StopContext(data)
 
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.stop_processing("User requested stop")
+            context.output.halt("User requested stop")
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -165,7 +165,7 @@ class TestStopOutput:
             assert result["continue"] is False
             assert result["stopReason"] == "User requested stop"
 
-    def test_continue_block(self):
+    def test_prevent(self):
         """Test continue block method."""
         data = {
             "hook_event_name": "Stop",
@@ -177,7 +177,7 @@ class TestStopOutput:
         context = StopContext(data)
 
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.continue_block("More tasks to complete")
+            context.output.prevent("More tasks to complete")
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -186,7 +186,7 @@ class TestStopOutput:
             assert result["decision"] == "block"
             assert result["reason"] == "More tasks to complete"
 
-    def test_continue_direct(self):
+    def test_allow(self):
         """Test continue direct method."""
         data = {
             "hook_event_name": "Stop",
@@ -198,7 +198,7 @@ class TestStopOutput:
         context = StopContext(data)
 
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.continue_direct()
+            context.output.allow()
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -222,7 +222,7 @@ class TestStopRealWorldScenarios:
 
         # Test allowing stop
         with patch("sys.exit") as mock_exit:
-            context.output.simple_approve("User requested stop")
+            context.output.exit_success("User requested stop")
             mock_exit.assert_called_once_with(0)
 
     def test_task_completion_stop(self):
@@ -238,7 +238,7 @@ class TestStopRealWorldScenarios:
 
         # Test allowing stop after completion
         with patch("sys.exit") as mock_exit:
-            context.output.simple_approve("All tasks completed")
+            context.output.exit_success("All tasks completed")
             mock_exit.assert_called_once_with(0)
 
     def test_prevent_stop_with_pending_tasks(self):
@@ -254,7 +254,7 @@ class TestStopRealWorldScenarios:
 
         # Test preventing stop
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.continue_block("Pending tasks not completed")
+            context.output.prevent("Pending tasks not completed")
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -293,11 +293,11 @@ class TestStopRealWorldScenarios:
 
             if scenario["should_stop"]:
                 with patch("sys.exit") as mock_exit:
-                    context.output.simple_approve(scenario["reason"])
+                    context.output.exit_success(scenario["reason"])
                     mock_exit.assert_called_once_with(0)
             else:
                 with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-                    context.output.continue_block(scenario["reason"])
+                    context.output.prevent(scenario["reason"])
 
                     output = mock_stdout.getvalue().strip()
                     result = json.loads(output)
@@ -316,7 +316,7 @@ class TestStopRealWorldScenarios:
 
         # When hook is inactive, should allow stopping by default
         with patch("sys.exit") as mock_exit:
-            context.output.simple_approve("Stop hook inactive, allowing stop")
+            context.output.exit_success("Stop hook inactive, allowing stop")
             mock_exit.assert_called_once_with(0)
 
     def test_json_mode_stop_decisions(self):
@@ -325,19 +325,19 @@ class TestStopRealWorldScenarios:
             {
                 "stop_hook_active": True,
                 "decision": "stop",
-                "method": "stop_processing",
+                "method": "halt",
                 "reason": "User completed all tasks",
             },
             {
                 "stop_hook_active": True,
                 "decision": "continue",
-                "method": "continue_direct",
+                "method": "allow",
                 "reason": "Continue processing",
             },
             {
                 "stop_hook_active": False,
                 "decision": "block",
-                "method": "continue_block",
+                "method": "prevent",
                 "reason": "Prevent stopping for more work",
             },
         ]

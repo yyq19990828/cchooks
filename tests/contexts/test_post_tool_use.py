@@ -122,7 +122,7 @@ class TestPostToolUseContext:
 class TestPostToolUseOutput:
     """Test PostToolUseOutput functionality."""
 
-    def test_simple_approve(self):
+    def test_exit_success(self):
         """Test simple approve method."""
         data = {
             "session_id": "test-123",
@@ -136,10 +136,10 @@ class TestPostToolUseOutput:
         context = PostToolUseContext(data)
 
         with patch("sys.exit") as mock_exit:
-            context.output.simple_approve("Operation completed successfully")
+            context.output.exit_success("Operation completed successfully")
             mock_exit.assert_called_once_with(0)
 
-    def test_simple_block(self):
+    def test_exit_block(self):
         """Test simple block method."""
         data = {
             "session_id": "test-123",
@@ -153,10 +153,10 @@ class TestPostToolUseOutput:
         context = PostToolUseContext(data)
 
         with patch("sys.exit") as mock_exit:
-            context.output.simple_block("Post-processing detected issues")
+            context.output.exit_block("Post-processing detected issues")
             mock_exit.assert_called_once_with(2)
 
-    def test_continue_block(self):
+    def test_challenge(self):
         """Test continue block method."""
         data = {
             "session_id": "test-123",
@@ -170,7 +170,7 @@ class TestPostToolUseOutput:
         context = PostToolUseContext(data)
 
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.continue_block("Python file written, consider formatting")
+            context.output.challenge("Python file written, consider formatting")
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -179,7 +179,7 @@ class TestPostToolUseOutput:
             assert result["decision"] == "block"
             assert result["reason"] == "Python file written, consider formatting"
 
-    def test_stop_processing(self):
+    def test_halt(self):
         """Test stop processing method."""
         data = {
             "session_id": "test-123",
@@ -193,7 +193,7 @@ class TestPostToolUseOutput:
         context = PostToolUseContext(data)
 
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.stop_processing("Security violation detected")
+            context.output.halt("Security violation detected")
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -201,7 +201,7 @@ class TestPostToolUseOutput:
             assert result["continue"] is False
             assert result["stopReason"] == "Security violation detected"
 
-    def test_continue_direct(self):
+    def test_accept(self):
         """Test continue direct method."""
         data = {
             "session_id": "test-123",
@@ -215,7 +215,7 @@ class TestPostToolUseOutput:
         context = PostToolUseContext(data)
 
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.continue_direct()
+            context.output.accept()
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -237,7 +237,7 @@ class TestPostToolUseOutput:
         context = PostToolUseContext(data)
 
         # Test suppress_output=True
-        context.output.continue_direct(suppress_output=True)
+        context.output.accept(suppress_output=True)
 
 
 class TestPostToolUseRealWorldScenarios:
@@ -263,8 +263,8 @@ class TestPostToolUseRealWorldScenarios:
         file_path = context.tool_input["file_path"]
         assert file_path.endswith(".py")
 
-        # Test continue_direct for auto-formatting
-        context.output.continue_direct(suppress_output=True)
+        # Test accept for auto-formatting
+        context.output.accept(suppress_output=True)
 
     def test_log_operations(self):
         """Test logging operations after tool use."""
@@ -313,7 +313,7 @@ class TestPostToolUseRealWorldScenarios:
 
         # Test error handling
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.continue_block("Write failed due to permissions")
+            context.output.challenge("Write failed due to permissions")
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -336,5 +336,5 @@ class TestPostToolUseRealWorldScenarios:
         # Test cleanup decision
         file_path = context.tool_input["file_path"]
         if "/tmp/" in file_path:
-            context.output.continue_direct(suppress_output=True)
+            context.output.accept(suppress_output=True)
             assert file_path.endswith(".txt")

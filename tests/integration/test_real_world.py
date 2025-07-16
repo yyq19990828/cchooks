@@ -37,7 +37,7 @@ class TestRealWorldSecurityScenarios:
         assert isinstance(context, PreToolUseContext)
 
         with patch("sys.exit") as mock_exit:
-            context.output.simple_block("Blocking write to system file /etc/passwd")
+            context.output.exit_block("Blocking write to system file /etc/passwd")
             mock_exit.assert_called_once_with(2)
 
     def test_config_file_approval_workflow(self):
@@ -59,7 +59,7 @@ class TestRealWorldSecurityScenarios:
         assert isinstance(context, PreToolUseContext)
 
         with patch("sys.exit") as mock_exit:
-            context.output.simple_approve("Safe config file write approved")
+            context.output.exit_success("Safe config file write approved")
             mock_exit.assert_called_once_with(0)
 
     def test_bash_command_safety_check(self):
@@ -89,7 +89,7 @@ class TestRealWorldSecurityScenarios:
             assert isinstance(context, PreToolUseContext)
 
             with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-                context.output.continue_block(f"Dangerous command detected: {command}")
+                context.output.block(f"Dangerous command detected: {command}")
 
                 output = mock_stdout.getvalue().strip()
                 result = json.loads(output)
@@ -127,7 +127,7 @@ class TestRealWorldDevelopmentWorkflows:
         assert file_path.endswith(".py")
 
         # Allow processing to continue (for auto-formatting)
-        context.output.continue_direct(suppress_output=True)
+        context.output.accept(suppress_output=True)
 
     def test_build_notification_workflow(self):
         """Test build completion notification workflow."""
@@ -191,7 +191,7 @@ class TestRealWorldConversationManagement:
 
         # Prevent stop due to pending tasks
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.continue_block("Pending deployment tasks not completed")
+            context.output.prevent("Pending deployment tasks not completed")
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -214,7 +214,7 @@ class TestRealWorldConversationManagement:
 
         # Allow subagent to stop
         with patch("sys.exit") as mock_exit:
-            context.output.simple_approve(
+            context.output.exit_success(
                 "Code analysis subagent completed successfully"
             )
             mock_exit.assert_called_once_with(0)
@@ -237,7 +237,7 @@ class TestRealWorldConversationManagement:
 
         # Approve compaction with custom rules
         with patch("sys.exit") as mock_exit:
-            context.output.simple_success("Auto-compaction with security preservation")
+            context.output.acknowledge("Auto-compaction with security preservation")
             mock_exit.assert_called_once_with(0)
 
 
@@ -357,13 +357,13 @@ class TestRealWorldIntegrationScenarios:
 
             if scenario["expected"] == "block":
                 with patch("sys.exit") as mock_exit:
-                    context.output.simple_block(
+                    context.output.exit_block(
                         f"Security policy: {scenario['description']}"
                     )
                     mock_exit.assert_called_once_with(2)
             else:
                 with patch("sys.exit") as mock_exit:
-                    context.output.simple_approve("Security audit approved")
+                    context.output.exit_success("Security audit approved")
                     mock_exit.assert_called_once_with(0)
 
     def test_development_cycle_workflow(self):

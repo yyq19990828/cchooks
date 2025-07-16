@@ -221,9 +221,9 @@ class TestCreateContextIntegration:
 
         # Test that output methods exist
         assert hasattr(context, "output")
-        assert hasattr(context.output, "simple_approve")
-        assert hasattr(context.output, "simple_block")
-        assert hasattr(context.output, "continue_approve")
-        assert hasattr(context.output, "continue_block")
-        assert hasattr(context.output, "continue_direct")
-        assert hasattr(context.output, "stop_processing")
+        assert hasattr(context.output, "exit_success")
+        assert hasattr(context.output, "exit_block")
+        assert hasattr(context.output, "approve")
+        assert hasattr(context.output, "block")
+        assert hasattr(context.output, "defer")
+        assert hasattr(context.output, "halt")
