@@ -29,8 +29,66 @@ The codebase is organized into:
 
 ### Setup
 ```bash
-# Install dependencies (none currently)
+# Install dependencies
+make setup
+
+# Or with uv directly
 uv sync
+```
+
+### Testing
+```bash
+# Run all tests with coverage
+make test
+
+# Run tests without coverage (faster)
+make test-quick
+
+# Run specific test file
+uv run pytest tests/contexts/test_pre_tool_use.py -v
+
+# Run single test
+uv run pytest tests/contexts/test_pre_tool_use.py::test_pre_tool_use_approve -v
+```
+
+### Linting and Formatting
+```bash
+# Check all code quality
+make check
+
+# Run individual checks
+make lint          # ruff check
+make type-check    # mypy
+make format-check  # ruff format --check
+make test          # pytest with coverage
+
+# Auto-fix issues
+make lint-fix      # ruff check --fix
+make format        # ruff format
+```
+
+### Build and Distribution
+```bash
+# Build package
+make build
+
+# Clean build artifacts
+make clean
+
+# Full release preparation
+make release-check
+```
+
+### Development Utilities
+```bash
+# Install in development mode
+make install-dev
+
+# Show dependency tree
+make deps-tree
+
+# Update lockfile
+make lock
 ```
 
 ### Usage Pattern
@@ -61,6 +119,34 @@ if isinstance(c, PreToolUseContext):
 - Each context provides specialized decision methods
 - JSON output includes `continue`, `decision`, `reason` fields
 
+## Project Structure
+
+```
+src/cchooks/
+├── __init__.py           # Main factory function create_context()
+├── types.py              # Type definitions and literals
+├── exceptions.py         # Custom exception classes
+├── utils.py              # JSON parsing utilities
+└── contexts/
+    ├── __init__.py       # Context exports
+    ├── base.py          # Abstract base classes
+    ├── pre_tool_use.py   # Pre-tool execution decisions
+    ├── post_tool_use.py  # Post-tool execution feedback
+    ├── notification.py   # Notification processing
+    ├── stop.py          # Stop behavior control
+    ├── subagent_stop.py  # Subagent stop control
+    └── pre_compact.py    # Pre-compaction processing
+
+tests/
+├── contexts/            # Context-specific tests
+├── fixtures/            # Test data and helpers
+├── integration/         # End-to-end tests
+├── test_context_creation.py  # Factory function tests
+├── test_exceptions.py   # Exception handling tests
+├── test_types.py        # Type validation tests
+└── test_utils.py        # Utility function tests
+```
+
 ## Key Files to Understand
 
 - `src/cchooks/__init__.py`: Main entry point and factory function
@@ -70,4 +156,9 @@ if isinstance(c, PreToolUseContext):
 
 ## Development Best Practices
 
-- When generating git commit messages, follow the patterns like "feat: " "fix: " "docs: " "refactor: " and other best practice for this.
+- When generating git commit messages, follow patterns like "feat:", "fix:", "docs:", "refactor:" and other best practices
+- Use type hints throughout the codebase
+- Write tests for all new functionality
+- Run `make check` before committing changes
+- Follow existing naming conventions and code style
+- Document public APIs with clear docstrings

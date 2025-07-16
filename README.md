@@ -1,32 +1,30 @@
 # cchooks
 
-A Python library for developing Claude Code hooks with type-safe interfaces and streamlined APIs. This module provides structured contexts and decision-making tools for all 6 Claude Code hook types.
+A lightweight Python library that makes building Claude Code hooks as simple as writing a few lines of code. Stop worrying about JSON parsing and focus on what your hook should actually do.
 
-> **New to Claude Code hooks?** See [docs/what-is-cc-hook.md](docs/what-is-cc-hook.md) for a comprehensive introduction.
+> **New to Claude Code hooks?** Check the [official docs](https://docs.anthropic.com/en/docs/claude-code/hooks) for the big picture.
+
+> **Need the full API?** See the [API Reference](docs/api-reference.md) for complete documentation.
 
 ## Features
 
-- **Type-safe contexts** for all 6 Claude Code hook types
-- **Simple and advanced modes** - exit codes or JSON decision control
-- **Automatic JSON parsing** and validation from stdin
-- **Context-specific APIs** for each hook type
-- **Built-in error handling** with helpful validation messages
+- **One-liner setup**: `create_context()` handles all the boilerplate
+- **Zero config**: Automatic JSON parsing and validation from stdin
+- **Smart detection**: Automatically figures out which hook you're building
+- **Two modes**: Simple exit codes OR advanced JSON control
+- **Type-safe**: Full type hints and IDE autocompletion
 
 ## Installation
 
 ```bash
 pip install cchooks
-```
-
-Or with uv:
-
-```bash
+# or
 uv add cchooks
 ```
 
 ## Quick Start
 
-Create a hook script that blocks writes to sensitive files:
+Build a hook in 30 seconds that blocks dangerous file writes:
 
 ```python
 #!/usr/bin/env python3
@@ -34,283 +32,43 @@ from cchooks import create_context
 
 c = create_context()
 
-if c.hook_event_name == "PreToolUse":
-    if c.tool_name == "Write" and ".env" in c.tool_input.get("file_path", ""):
-        c.output.simple_block("Refusing to write to .env file")
-    else:
-        c.output.simple_approve()
+# Block writes to .env files
+if c.tool_name == "Write" and ".env" in c.tool_input.get("file_path", ""):
+    c.output.simple_block("Nope! .env files are protected")
+else:
+    c.output.simple_approve()
 ```
 
-Save as `hooks/pre-write-check.py` and make executable:
+Save as `hooks/env-guard.py`, make executable:
 
 ```bash
-chmod +x hooks/pre-write-check.py
+chmod +x hooks/env-guard.py
 ```
 
-## Hook Types
+That's it. No JSON parsing, no validation headaches.
 
-### 1. PreToolUse
-Runs before tool execution, can approve/block tools.
+## 3-Minute Tutorial
+
+Build each hook type with real examples:
+
+### PreToolUse (Security Guard)
+Block dangerous commands before they run:
 
 ```python
+#!/usr/bin/env python3
 from cchooks import create_context
 
 c = create_context()
 
-if c.hook_event_name == "PreToolUse":
-    # Block dangerous Bash commands
-    if c.tool_name == "Bash" and "rm -rf" in c.tool_input.get("command", ""):
-        c.output.block("Dangerous command detected")
-
-    # Auto-approve safe operations
-    elif c.tool_name == "Read":
-        c.output.approve()
-
-    # Use simple mode
-    else:
-        c.output.simple_approve()
-```
-
-### 2. PostToolUse
-Runs after tool execution, provides feedback only.
-
-```python
-from cchooks import create_context
-
-c = create_context()
-
-if c.hook_event_name == "PostToolUse":
-    if c.tool_name == "Write":
-        file_path = c.tool_input.get("file_path")
-        if file_path and file_path.endswith(".py"):
-            # Could trigger auto-formatting here
-            print(f"Python file written: {file_path}")
-```
-
-### 3. Notification
-Processes notifications from Claude Code.
-
-```python
-from cchooks import create_context
-
-c = create_context()
-
-if c.hook_event_name == "Notification":
-    message = c.message
-    if "permission" in message.lower():
-        # Send to custom notification system
-        print(f"Permission required: {message}")
-```
-
-### 4. Stop
-Controls when Claude Code should stop responding.
-
-```python
-from cchooks import create_context
-
-c = create_context()
-
-if c.hook_event_name == "Stop":
-    # Always allow Claude to stop by default
+# Block rm -rf commands
+if c.tool_name == "Bash" and "rm -rf" in c.tool_input.get("command", ""):
+    c.output.simple_block("You should not execute this command: System protection: rm -rf blocked")
+else:
     c.output.simple_approve()
 ```
 
-### 5. SubagentStop
-Controls subagent stopping behavior.
-
-```python
-from cchooks import create_context
-
-c = create_context()
-
-if c.hook_event_name == "SubagentStop":
-    # Allow subagents to complete normally
-    c.output.simple_approve()
-```
-
-### 6. PreCompact
-Runs before transcript compaction.
-
-```python
-from cchooks import create_context
-
-c = create_context()
-
-if c.hook_event_name == "PreCompact":
-    trigger = c.trigger  # "manual" or "auto"
-    print(f"Compacting transcript ({trigger} trigger)")
-    c.output.simple_approve()
-```
-
-## API Reference
-
-### Core Functions
-
-#### `create_context()`
-Creates the appropriate context object based on stdin input.
-
-```python
-from cchooks import create_context
-
-context = create_context()
-# Returns: PreToolUseContext, PostToolUseContext, etc.
-```
-
-### Context Classes
-
-#### `PreToolUseContext`
-- `tool_name: str` - Tool being executed
-- `tool_input: dict` - Tool parameters
-- Methods:
-  - `simple_approve(message=None)` - Exit 0, simple approval
-  - `simple_block(message)` - Exit 2, simple block
-  - `stop_processing(stop_reason, suppress_output=False)` - JSON stop
-  - `continue_approve(reason, suppress_output=False)` - JSON approve
-  - `continue_block(reason, suppress_output=False)` - JSON block
-  - `continue_direct(suppress_output=False)` - JSON continue
-
-#### `PostToolUseContext`
-- `tool_name: str` - Tool that was executed
-- `tool_input: dict` - Original tool parameters
-- `tool_response: dict` - Tool execution result
-- Methods:
-  - `simple_approve(message=None)` - Exit 0, simple approval
-  - `simple_block(message)` - Exit 2, simple block
-  - `stop_processing(stop_reason, suppress_output=False)` - JSON stop
-  - `continue_block(reason, suppress_output=False)` - JSON prompt Claude
-  - `continue_direct(suppress_output=False)` - JSON continue
-
-#### `NotificationContext`
-- `message: str` - Notification message
-
-#### `StopContext`
-- `stop_hook_active: bool` - Whether stop hook is active
-- Methods:
-  - `simple_approve(message=None)` - Exit 0, simple approval
-  - `simple_block(message)` - Exit 2, simple block
-  - `stop_processing(stop_reason, suppress_output=False)` - JSON stop
-  - `continue_block(reason, suppress_output=False)` - JSON prevent stopping
-  - `continue_direct(suppress_output=False)` - JSON allow stopping
-
-#### `SubagentStopContext`
-- `stop_hook_active: bool` - Whether subagent stop hook is active
-- Methods:
-  - `simple_approve(message=None)` - Exit 0, simple approval
-  - `simple_block(message)` - Exit 2, simple block
-  - `stop_processing(stop_reason, suppress_output=False)` - JSON stop
-  - `continue_block(reason, suppress_output=False)` - JSON prevent stopping
-  - `continue_direct(suppress_output=False)` - JSON allow stopping
-
-#### `PreCompactContext`
-- `trigger: str` - "manual" or "auto"
-- `custom_instructions: str` - Custom compact instructions
-
-## Advanced Usage
-
-### JSON Mode Output
-
-Each context provides specific JSON methods for precise control. Instead of simple exit codes, you can use structured JSON responses with fine-grained control.
-
-#### PreToolUse JSON Methods
-
-```python
-from cchooks import create_context
-
-c = create_context()
-
-if c.hook_event_name == "PreToolUse":
-    if c.tool_name == "Write":
-        file_path = c.tool_input.get("file_path", "")
-        
-        if "password" in file_path:
-            # Block tool execution and stop processing
-            c.output.stop_processing("Security policy violation")
-            
-        elif file_path.endswith(".tmp"):
-            # Approve tool execution and continue
-            c.output.continue_approve("Temporary file approved")
-            
-        elif "config" in file_path:
-            # Block tool execution but continue processing
-            c.output.continue_block("Config files require review")
-            
-        else:
-            # Continue processing without decision
-            c.output.continue_direct()
-```
-
-#### Stop JSON Methods
-
-```python
-from cchooks import create_context
-
-c = create_context()
-
-if c.hook_event_name == "Stop":
-    if not c.stop_hook_active:
-        # Prevent Claude from stopping
-        c.output.continue_block("More tasks to complete")
-    else:
-        # Allow Claude to stop
-        c.output.continue_direct()
-```
-
-#### PostToolUse JSON Methods
-
-```python
-from cchooks import create_context
-
-c = create_context()
-
-if c.hook_event_name == "PostToolUse":
-    if c.tool_name == "Write":
-        file_path = c.tool_input.get("file_path", "")
-        if file_path.endswith(".py"):
-            # Run auto-formatting and continue
-            print(f"Auto-formatting: {file_path}")
-            c.output.continue_direct(suppress_output=True)
-```
-
-### JSON Response Fields
-
-All JSON methods output structured responses:
-
-- `continue`: boolean - Whether Claude should continue processing
-- `stopReason`: string - Reason shown to user when stopping
-- `suppressOutput`: boolean - Hide stdout from transcript mode
-- `decision`: string - Tool-specific decisions ("approve", "block", or omitted)
-- `reason`: string - Explanation for decisions
-
-### Suppress Output
-
-Use `suppress_output=True` to hide JSON responses from transcript mode:
-
-```python
-c.output.continue_direct(suppress_output=True)  # Hidden from transcript
-```
-
-### Conditional Approval
-
-```python
-from cchooks import create_context
-
-c = create_context()
-
-if c.hook_event_name == "PreToolUse":
-    if c.tool_name == "Bash":
-        command = c.tool_input.get("command", "")
-
-        # Allow safe commands
-        safe_commands = ["ls", "pwd", "git status"]
-        if any(safe in command for safe in safe_commands):
-            c.output.approve("Safe command approved")
-        else:
-            c.output.block("Command requires manual review")
-```
-
-## Examples
-
-### Auto-format Python files
+### PostToolUse (Auto-formatter)
+Format Python files after writing:
 
 ```python
 #!/usr/bin/env python3
@@ -319,73 +77,213 @@ from cchooks import create_context
 
 c = create_context()
 
-if c.hook_event_name == "PostToolUse":
-    if c.tool_name == "Write" and c.tool_input.get("file_path", "").endswith(".py"):
-        file_path = c.tool_input["file_path"]
-        try:
-            subprocess.run(["black", file_path], check=True)
-            print(f"Auto-formatted: {file_path}")
-        except subprocess.CalledProcessError:
-            print(f"Failed to format: {file_path}")
+if c.tool_name == "Write" and c.tool_input.get("file_path", "").endswith(".py"):
+    file_path = c.tool_input["file_path"]
+    subprocess.run(["black", file_path])
+    print(f"Auto-formatted: {file_path}")
 ```
 
-### Block sensitive file modifications
+### Notification (Desktop Alerts)
+Send desktop notifications:
+
+```python
+#!/usr/bin/env python3
+import os
+from cchooks import create_context
+
+c = create_context()
+
+if "permission" in c.message.lower():
+    os.system(f'notify-send "Claude" "{c.message}"')
+```
+
+### Stop (Task Manager)
+Keep Claude working on long tasks:
 
 ```python
 #!/usr/bin/env python3
 from cchooks import create_context
 
-SENSITIVE_FILES = {".env", "config.json", "secrets.yaml"}
-
 c = create_context()
 
-if c.hook_event_name == "PreToolUse":
-    if c.tool_name == "Write":
-        file_path = c.tool_input.get("file_path", "")
-        filename = file_path.split("/")[-1]
-
-        if filename in SENSITIVE_FILES:
-            c.output.block(f"Cannot modify sensitive file: {filename}")
-        else:
-            c.output.approve()
+if not c.stop_hook_active: # Claude has not been activated by other Stop Hook
+    c.output.continue_block("Hey Claude, you should try to do more works!") # Prevent from stopping, and prompt Claude
+else:
+    c.output.continue_direct()  # Allow stop
 ```
 
-## Error Handling
+> Since Hooks are executed in parallel in claude-code, it is necessary to check `stop_hook_active` to determine if claude has already been activated by another parallel Stop Hook.
 
-The library provides built-in validation and error handling:
+### SubagentStop (Workflow Control)
+Same as Stop, but for subagents:
 
 ```python
 from cchooks import create_context
-from cchooks.exceptions import HookValidationError
+c = create_context()
+c.output.simple_approve()  # Let subagents complete
+```
 
-try:
-    c = create_context()
-    # Your hook logic here
-except HookValidationError as e:
-    print(f"Invalid hook input: {e}", file=sys.stderr)
-    sys.exit(1)
+### PreCompact (Custom Instructions)
+Add custom compaction rules:
+
+```python
+from cchooks import create_context
+
+c = create_context()
+
+if c.custom_instructions:
+    print(f"Using custom compaction: {c.custom_instructions}")
+```
+
+## Quick API Guide
+
+| Hook Type | What You Get | Key Properties |
+|-----------|--------------|----------------|
+| **PreToolUse** | `c.tool_name`, `c.tool_input` | Block dangerous tools |
+| **PostToolUse** | `c.tool_response` | React to tool results |
+| **Notification** | `c.message` | Handle notifications |
+| **Stop** | `c.stop_hook_active` | Control when Claude stops |
+| **SubagentStop** | `c.stop_hook_active` | Control subagent behavior |
+| **PreCompact** | `c.trigger`, `c.custom_instructions` | Modify transcript compaction |
+
+### Simple Mode (Exit Codes)
+```python
+# Exit 0 = approve, Exit 2 = block
+c.output.simple_approve()  # ✅
+c.output.simple_block("reason")  # ❌
+```
+
+### Advanced Mode (JSON)
+```python
+# Precise control over Claude's behavior
+c.output.continue_approve("reason")
+c.output.continue_block("reason")
+c.output.continue_direct()
+```
+
+## Production Examples
+
+### Multi-tool Security Guard
+Block dangerous operations across multiple tools:
+
+```python
+#!/usr/bin/env python3
+from cchooks import create_context
+
+DANGEROUS_COMMANDS = {"rm -rf", "sudo", "format", "fdisk"}
+SENSITIVE_FILES = {".env", "secrets.json", "id_rsa"}
+
+c = create_context()
+
+# Block dangerous Bash commands
+if c.tool_name == "Bash":
+    command = c.tool_input.get("command", "")
+    if any(danger in command for danger in DANGEROUS_COMMANDS):
+        c.output.simple_block("Security: Dangerous command blocked")
+    else:
+        c.output.simple_approve()
+
+# Block writes to sensitive files
+elif c.tool_name == "Write":
+    file_path = c.tool_input.get("file_path", "")
+    if any(sensitive in file_path for sensitive in SENSITIVE_FILES):
+        c.output.simple_block(f"Protected file: {file_path}")
+    else:
+        c.output.simple_approve()
+
+else:
+    c.output.continue_direct() # Pattern not matched, just bypass this hook
+```
+
+### Auto-linter Hook
+Lint Python files after writing:
+
+```python
+#!/usr/bin/env python3
+import subprocess
+from cchooks import create_context
+
+c = create_context()
+
+if c.tool_name == "Write" and c.tool_input.get("file_path", "").endswith(".py"):
+    file_path = c.tool_input["file_path"]
+
+    # Run ruff linter
+    result = subprocess.run(["ruff", "check", file_path], capture_output=True)
+
+    if result.returncode == 0:
+        print(f"✅ {file_path} passed linting")
+    else:
+        print(f"⚠️  {file_path} has issues:")
+        print(result.stdout.decode())
+
+    c.output.simple_approve()
+```
+
+### Git-aware Auto-commit
+Auto-commit file changes:
+
+```python
+#!/usr/bin/env python3
+import subprocess
+from cchooks import create_context
+
+c = create_context()
+
+if c.tool_name == "Write":
+    file_path = c.tool_input.get("file_path", "")
+
+    # Skip non-git files
+    if not file_path.startswith("/my-project/"):
+        c.output.simple_approve()
+
+    # Auto-commit Python changes
+    if file_path.endswith(".py"):
+        try:
+            subprocess.run(["git", "add", file_path], check=True)
+            subprocess.run([
+                "git", "commit", "-m",
+                f"auto: update {file_path.split('/')[-1]}"
+            ], check=True)
+            print(f"📁 Committed: {file_path}")
+        except subprocess.CalledProcessError:
+            print("Git commit failed - probably no changes")
+
+    c.output.simple_approve()
+```
+
+### Permission Logger
+Log all permission requests:
+
+```python
+#!/usr/bin/env python3
+import json
+import datetime
+from cchooks import create_context
+
+c = create_context()
+
+if c.tool_name == "Write":
+    log_entry = {
+        "timestamp": datetime.datetime.now().isoformat(),
+        "file": c.tool_input.get("file_path"),
+        "action": "write_requested"
+    }
+
+    with open("/tmp/permission-log.jsonl", "a") as f:
+        f.write(json.dumps(log_entry) + "\n")
+
+    c.output.simple_approve()
 ```
 
 ## Development
 
-### Setup
-
 ```bash
-git clone <repository>
+git clone https://github.com/GowayLee/cchooks.git
 cd cchooks
-uv sync
+make help # See detailed dev commands
 ```
 
 ## License
 
 MIT License - see LICENSE file for details.
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Ensure all tests pass
-5. Submit a pull request
-
-For questions or issues, please open a GitHub issue.
