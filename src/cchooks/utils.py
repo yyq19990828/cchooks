@@ -80,7 +80,7 @@ def safe_get_bool(data: Dict[str, Any], key: str, default: bool = False) -> bool
 
 
 def safe_get_dict(
-    data: Dict[str, Any], key: str, default: Dict[str, Any] = None
+    data: Dict[str, Any], key: str, default: Dict[str, Any] | None = None
 ) -> Dict[str, Any]:
     """Safely get a dictionary value from dictionary.
 
