@@ -16,8 +16,14 @@ class NotificationContext(BaseHookContext):
 
     def _validate_notification_fields(self) -> None:
         """Validate Notification-specific fields."""
+
         if "message" not in self._input_data:
-            raise HookValidationError("Missing required Notification field: message")
+            self._missing_fields.append("message")
+
+        if self._missing_fields:
+            raise HookValidationError(
+                f"Missing required fields: {', '.join(self._missing_fields)}"
+            )
 
     @property
     def message(self) -> str:

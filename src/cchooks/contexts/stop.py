@@ -19,7 +19,12 @@ class StopContext(BaseHookContext):
     def _validate_stop_fields(self) -> None:
         """Validate Stop-specific fields."""
         if "stop_hook_active" not in self._input_data:
-            raise HookValidationError("Missing required Stop field: stop_hook_active")
+            self._missing_fields.append("stop_hook_active")
+
+        if self._missing_fields:
+            raise HookValidationError(
+                f"Missing required Stop fields: {', '.join(self._missing_fields)}"
+            )
 
     @property
     def stop_hook_active(self) -> bool:

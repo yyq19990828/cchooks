@@ -22,9 +22,12 @@ class PostToolUseContext(BaseHookContext):
         required_fields = ["tool_name", "tool_input", "tool_response"]
         for field in required_fields:
             if field not in self._input_data:
-                raise HookValidationError(
-                    f"Missing required PostToolUse field: {field}"
-                )
+                self._missing_fields.append(field)
+
+        if self._missing_fields:
+            raise HookValidationError(
+                f"Missing required PostToolUse fields: {', '.join(self._missing_fields)}"
+            )
 
         if not isinstance(self._input_data["tool_input"], dict):
             raise HookValidationError("tool_input must be a JSON object")

@@ -20,7 +20,12 @@ class PreCompactContext(BaseHookContext):
         required_fields = ["trigger", "custom_instructions"]
         for field in required_fields:
             if field not in self._input_data:
-                raise HookValidationError(f"Missing required PreCompact field: {field}")
+                self._missing_fields.append(field)
+
+        if self._missing_fields:
+            raise HookValidationError(
+                f"Missing required PreCompact fields: {', '.join(self._missing_fields)}"
+            )
 
     @property
     def trigger(self) -> PreCompactTrigger:

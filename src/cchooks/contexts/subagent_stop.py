@@ -19,8 +19,11 @@ class SubagentStopContext(BaseHookContext):
     def _validate_subagent_stop_fields(self) -> None:
         """Validate SubagentStop-specific fields."""
         if "stop_hook_active" not in self._input_data:
+            self._missing_fields.append("stop_hook_active")
+
+        if self._missing_fields:
             raise HookValidationError(
-                "Missing required SubagentStop field: stop_hook_active"
+                f"Missing required subagenStop fields: {', '.join(self._missing_fields)}"
             )
 
     @property

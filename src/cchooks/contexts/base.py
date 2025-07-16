@@ -5,7 +5,7 @@ import sys
 from abc import ABC, abstractmethod
 from typing import Any, Dict, NoReturn, Optional, TextIO
 
-from ..exceptions import HookValidationError, ParseError
+from ..exceptions import ParseError
 from ..types import BaseOutput, HookEventType
 
 
@@ -15,6 +15,7 @@ class BaseHookContext(ABC):
     def __init__(self, input_data: Dict[str, Any]) -> None:
         """Initialize the context with parsed input data."""
         self._input_data = input_data
+        self._missing_fields: list[str] = []
         self._validate_common_fields()
 
     def _validate_common_fields(self) -> None:
@@ -22,7 +23,7 @@ class BaseHookContext(ABC):
         required_fields = ["session_id", "transcript_path", "hook_event_name"]
         for field in required_fields:
             if field not in self._input_data:
-                raise HookValidationError(f"Missing required field: {field}")
+                self._missing_fields.append(field)
 
     @property
     def session_id(self) -> str:
@@ -98,4 +99,3 @@ class BaseHookOutput(ABC):
         """Exit with blocking error (exit code 2)."""
         print(reason, file=sys.stderr)
         sys.exit(2)
-
