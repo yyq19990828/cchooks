@@ -34,9 +34,9 @@ c = create_context()
 
 # Block writes to .env files
 if c.tool_name == "Write" and ".env" in c.tool_input.get("file_path", ""):
-    c.output.simple_block("Nope! .env files are protected")
+    c.output.exit_block("Nope! .env files are protected")
 else:
-    c.output.simple_approve()
+    c.output.exit_success()
 ```
 
 Save as `hooks/env-guard.py`, make executable:
@@ -62,9 +62,9 @@ c = create_context()
 
 # Block rm -rf commands
 if c.tool_name == "Bash" and "rm -rf" in c.tool_input.get("command", ""):
-    c.output.simple_block("You should not execute this command: System protection: rm -rf blocked")
+    c.output.exit_block("You should not execute this command: System protection: rm -rf blocked")
 else:
-    c.output.simple_approve()
+    c.output.exit_success()
 ```
 
 ### PostToolUse (Auto-formatter)
@@ -107,9 +107,9 @@ from cchooks import create_context
 c = create_context()
 
 if not c.stop_hook_active: # Claude has not been activated by other Stop Hook
-    c.output.continue_block("Hey Claude, you should try to do more works!") # Prevent from stopping, and prompt Claude
+    c.output.prevent("Hey Claude, you should try to do more works!") # Prevent from stopping, and prompt Claude
 else:
-    c.output.continue_direct()  # Allow stop
+    c.output.allow()  # Allow stop
 ```
 
 > Since Hooks are executed in parallel in claude-code, it is necessary to check `stop_hook_active` to determine if claude has already been activated by another parallel Stop Hook.
@@ -149,16 +149,16 @@ if c.custom_instructions:
 ### Simple Mode (Exit Codes)
 ```python
 # Exit 0 = approve, Exit 2 = block
-c.output.simple_approve()  # ✅
-c.output.simple_block("reason")  # ❌
+c.output.exit_success()  # ✅
+c.output.exit_block("reason")  # ❌
 ```
 
 ### Advanced Mode (JSON)
 ```python
 # Precise control over Claude's behavior
-c.output.continue_approve("reason")
-c.output.continue_block("reason")
-c.output.continue_direct()
+c.output.approve("reason")
+c.output.block("reason")
+c.output.defer()
 ```
 
 ## Production Examples
@@ -179,20 +179,20 @@ c = create_context()
 if c.tool_name == "Bash":
     command = c.tool_input.get("command", "")
     if any(danger in command for danger in DANGEROUS_COMMANDS):
-        c.output.simple_block("Security: Dangerous command blocked")
+        c.output.exit_block("Security: Dangerous command blocked")
     else:
-        c.output.simple_approve()
+        c.output.exit_success()
 
 # Block writes to sensitive files
 elif c.tool_name == "Write":
     file_path = c.tool_input.get("file_path", "")
     if any(sensitive in file_path for sensitive in SENSITIVE_FILES):
-        c.output.simple_block(f"Protected file: {file_path}")
+        c.output.exit_block(f"Protected file: {file_path}")
     else:
-        c.output.simple_approve()
+        c.output.exit_success()
 
 else:
-    c.output.continue_direct() # Pattern not matched, just bypass this hook
+    c.output.defer() # Pattern not matched, just bypass this hook
 ```
 
 ### Auto-linter Hook
@@ -217,7 +217,7 @@ if c.tool_name == "Write" and c.tool_input.get("file_path", "").endswith(".py"):
         print(f"⚠️  {file_path} has issues:")
         print(result.stdout.decode())
 
-    c.output.simple_approve()
+    c.output.exit_success()
 ```
 
 ### Git-aware Auto-commit
@@ -235,7 +235,7 @@ if c.tool_name == "Write":
 
     # Skip non-git files
     if not file_path.startswith("/my-project/"):
-        c.output.simple_approve()
+        c.output.exit_success()
 
     # Auto-commit Python changes
     if file_path.endswith(".py"):
@@ -249,7 +249,7 @@ if c.tool_name == "Write":
         except subprocess.CalledProcessError:
             print("Git commit failed - probably no changes")
 
-    c.output.simple_approve()
+    c.output.exit_success()
 ```
 
 ### Permission Logger
@@ -273,7 +273,7 @@ if c.tool_name == "Write":
     with open("/tmp/permission-log.jsonl", "a") as f:
         f.write(json.dumps(log_entry) + "\n")
 
-    c.output.simple_approve()
+    c.output.exit_success()
 ```
 
 ## Development
