@@ -42,7 +42,7 @@ class NotificationOutput(BaseHookOutput):
         Args:
             message(Optional[str]): Message shown to the user(default: None)
         """
-        self.success(message)
+        self._success(message)
 
     def simple_block(self, reason: str) -> NoReturn:
         """Block with simple exit code (exit 2).
@@ -50,7 +50,7 @@ class NotificationOutput(BaseHookOutput):
         Args:
             reason(str): Blocking reason shown to the user, not to Claude
         """
-        self.block(reason)
+        self._block(reason)
 
     def simple_error(self, message: str) -> NoReturn:
         """Report error and Block with simple exit code (exit 1).
@@ -58,4 +58,4 @@ class NotificationOutput(BaseHookOutput):
         Args:
             message(str): Message shown to the user
         """
-        self.error(message)
+        self._error(message)

@@ -44,7 +44,7 @@ class SubagentStopOutput(BaseHookOutput):
             stop_reason (str): Stopping reason shown to the user, not shown to Claude
             suppress_output (bool): Hide stdout from transcript mode (default: False)
         """
-        output = self.stop_flow(stop_reason, suppress_output)
+        output = self._stop_flow(stop_reason, suppress_output)
         print(json.dumps(output), file=sys.stdout)
 
     def continue_block(self, reason: str, suppress_output: bool = False) -> None:
@@ -54,7 +54,7 @@ class SubagentStopOutput(BaseHookOutput):
             reason (str): Reason shown to Clade for further reasoning
             suppress_output (bool): Hide stdout from transcript mode (default: False)
         """
-        output = self.continue_flow(suppress_output)
+        output = self._continue_flow(suppress_output)
         output.update({"decision": "block", "reason": reason})
         print(json.dumps(output), file=sys.stdout)
 
@@ -64,7 +64,7 @@ class SubagentStopOutput(BaseHookOutput):
         Args:
             suppress_output (bool): Hide stdout from transcript mode (default: False)
         """
-        output = self.continue_flow(suppress_output)
+        output = self._continue_flow(suppress_output)
         print(json.dumps(output), file=sys.stdout)
 
     def simple_approve(self, message: Optional[str] = None) -> NoReturn:
@@ -73,7 +73,7 @@ class SubagentStopOutput(BaseHookOutput):
         Args:
             message (Optional[str]): Message shown to the user (default: None)
         """
-        self.success(message)
+        self._success(message)
 
     def simple_block(self, message: str) -> NoReturn:
         """Block with simple exit code (exit 2).
@@ -81,4 +81,4 @@ class SubagentStopOutput(BaseHookOutput):
         Args:
             message (str): Message shown to the user
         """
-        self.block(message)
+        self._block(message)

@@ -67,7 +67,7 @@ class BaseHookOutput(ABC):
         # self.base_json = base_json
         pass
 
-    def continue_flow(self, suppress_output: bool = False) -> BaseOutput:
+    def _continue_flow(self, suppress_output: bool = False) -> BaseOutput:
         """Construct Json with continue is true"""
         return {
             "continue": True,
@@ -75,7 +75,7 @@ class BaseHookOutput(ABC):
             "suppressOutput": suppress_output,
         }
 
-    def stop_flow(self, stop_reason: str, suppress_output: bool = False) -> BaseOutput:
+    def _stop_flow(self, stop_reason: str, suppress_output: bool = False) -> BaseOutput:
         """Construct Json with continue is false"""
         return {
             "continue": False,
@@ -83,18 +83,18 @@ class BaseHookOutput(ABC):
             "suppressOutput": suppress_output,
         }
 
-    def success(self, message: Optional[str] = None) -> NoReturn:
+    def _success(self, message: Optional[str] = None) -> NoReturn:
         """Exit with success (exit code 0)."""
         if message:
             print(message, file=sys.stdout)
         sys.exit(0)
 
-    def error(self, message: str, exit_code: int = 1) -> NoReturn:
+    def _error(self, message: str, exit_code: int = 1) -> NoReturn:
         """Exit with error (non-blocking)."""
         print(message, file=sys.stderr)
         sys.exit(exit_code)
 
-    def block(self, reason: str) -> NoReturn:
+    def _block(self, reason: str) -> NoReturn:
         """Exit with blocking error (exit code 2)."""
         print(reason, file=sys.stderr)
         sys.exit(2)
