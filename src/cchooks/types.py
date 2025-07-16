@@ -8,18 +8,18 @@ HookEventType = Literal[
 ]
 
 # Tool names
-ToolName = Literal[
-    "Task",
-    "Bash",
-    "Glob",
-    "Grep",
-    "Read",
-    "Edit",
-    "MultiEdit",
-    "Write",
-    "WebFetch",
-    "WebSearch",
-]
+# ToolName = Literal[
+#     "Task",
+#     "Bash",
+#     "Glob",
+#     "Grep",
+#     "Read",
+#     "Edit",
+#     "MultiEdit",
+#     "Write",
+#     "WebFetch",
+#     "WebSearch",
+# ]
 
 # Trigger types for PreCompact
 PreCompactTrigger = Literal["manual", "auto"]

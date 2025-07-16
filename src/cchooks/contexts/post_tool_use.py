@@ -6,7 +6,7 @@ from typing import Any, Dict, NoReturn, Optional
 
 from .base import BaseHookContext, BaseHookOutput
 from ..exceptions import HookValidationError
-from ..types import ToolName
+# from ..types import ToolName
 
 
 class PostToolUseContext(BaseHookContext):
@@ -36,7 +36,7 @@ class PostToolUseContext(BaseHookContext):
             raise HookValidationError("tool_response must be a JSON object")
 
     @property
-    def tool_name(self) -> ToolName:
+    def tool_name(self) -> str:
         """Get the tool name."""
         return str(self._input_data["tool_name"])  # type: ignore
 
