@@ -161,4 +161,3 @@ def get_invalid_samples():
         ("missing_hook_event", INVALID_MISSING_HOOK_EVENT),
         ("unknown_hook_event", INVALID_UNKNOWN_HOOK_EVENT),
     ]
-

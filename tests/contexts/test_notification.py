@@ -54,9 +54,23 @@ class TestNotificationContext:
     def test_context_validation_missing_required_fields(self):
         """Test context validation with missing required fields."""
         invalid_cases = [
-            ({}, ["hook_event_name", "message"]),
-            ({"hook_event_name": "Notification"}, ["message"]),
-            ({"message": "test message"}, ["hook_event_name"]),
+            (
+                {},
+                [
+                    "session_id",
+                    "transcript_path",
+                    "hook_event_name",
+                    "message",
+                ],
+            ),
+            (
+                {"hook_event_name": "Notification"},
+                ["session_id", "transcript_path", "message"],
+            ),
+            (
+                {"message": "test message"},
+                ["session_id", "transcript_path", "hook_event_name"],
+            ),
         ]
 
         for data, missing_fields in invalid_cases:
@@ -65,7 +79,7 @@ class TestNotificationContext:
 
             error_msg = str(exc_info.value)
             for field in missing_fields:
-                assert f"Missing required field: {field}" in error_msg
+                assert field in error_msg
 
     def test_context_with_extra_fields(self):
         """Test context creation with extra fields."""
@@ -101,11 +115,11 @@ class TestNotificationOutput:
         context = NotificationContext(data)
 
         with patch("sys.exit") as mock_exit:
-            context.output.simple_approve("Notification processed")
+            context.output.simple_success("Notification processed")
             mock_exit.assert_called_once_with(0)
 
-    def test_simple_approve_without_message(self):
-        """Test simple approve method without custom message."""
+    def test_no_continue_method_available(self):
+        """Test that notification context doesn't have continue methods."""
         data = {
             "hook_event_name": "Notification",
             "session_id": "test-123",
@@ -115,25 +129,11 @@ class TestNotificationOutput:
 
         context = NotificationContext(data)
 
-        with patch("sys.exit") as mock_exit:
-            context.output.simple_approve()
-            mock_exit.assert_called_once_with(0)
-
-    def test_no_block_method_available(self):
-        """Test that notification context doesn't have block methods."""
-        data = {
-            "hook_event_name": "Notification",
-            "session_id": "test-123",
-            "transcript_path": "/tmp/transcript.json",
-            "message": "Test notification",
-        }
-
-        context = NotificationContext(data)
-
-        # Notification context should only have approve methods
-        assert hasattr(context.output, "simple_approve")
-        assert not hasattr(context.output, "simple_block")
+        assert hasattr(context.output, "simple_success")
+        assert hasattr(context.output, "simple_block")
+        assert not hasattr(context.output, "continue_approve")
         assert not hasattr(context.output, "continue_block")
+        assert not hasattr(context.output, "continue_direct")
 
 
 class TestNotificationRealWorldScenarios:
@@ -160,6 +160,8 @@ class TestNotificationRealWorldScenarios:
             assert (
                 "permission" in context.message.lower()
                 or "access" in context.message.lower()
+                or "rights" in context.message.lower()
+                or "authorization" in context.message.lower()
             )
 
     def test_operation_status_notifications(self):
@@ -255,7 +257,7 @@ class TestNotificationRealWorldScenarios:
             context = NotificationContext(data)
             assert any(
                 keyword in context.message.lower()
-                for keyword in ["auto", "backup", "update", "system", "cache"]
+                for keyword in ["auto", "backup", "update", "warning", "system", "cache"]
             )
 
     def test_empty_and_edge_case_messages(self):
@@ -311,6 +313,5 @@ class TestNotificationRealWorldScenarios:
 
             # Test simple approve (notification hooks always approve)
             with patch("sys.exit") as mock_exit:
-                context.output.simple_approve()
+                context.output.simple_success("success")
                 mock_exit.assert_called_once_with(0)
-

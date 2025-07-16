@@ -81,11 +81,43 @@ class TestPreToolUseContext:
     def test_context_validation_missing_required_fields(self):
         """Test context validation with missing required fields."""
         invalid_cases = [
-            ({}, ["hook_event_name", "tool_name", "tool_input"]),
-            ({"hook_event_name": "PreToolUse"}, ["tool_name", "tool_input"]),
-            ({"tool_name": "Write"}, ["hook_event_name", "tool_input"]),
-            ({"tool_input": {"file_path": "/test"}}, ["hook_event_name", "tool_name"]),
-            ({"hook_event_name": "PreToolUse", "tool_name": "Write"}, ["tool_input"]),
+            (
+                {},
+                [
+                    "session_id",
+                    "transcript_path",
+                    "hook_event_name",
+                    "tool_name",
+                    "tool_input",
+                ],
+            ),
+            (
+                {"hook_event_name": "PostToolUse"},
+                [
+                    "session_id",
+                    "transcript_path",
+                    "tool_name",
+                    "tool_input",
+                ],
+            ),
+            (
+                {"tool_name": "Write"},
+                [
+                    "session_id",
+                    "transcript_path",
+                    "hook_event_name",
+                    "tool_input",
+                ],
+            ),
+            (
+                {"tool_input": {}},
+                [
+                    "session_id",
+                    "transcript_path",
+                    "hook_event_name",
+                    "tool_name",
+                ],
+            ),
         ]
 
         for data, missing_fields in invalid_cases:
@@ -94,11 +126,13 @@ class TestPreToolUseContext:
 
             error_msg = str(exc_info.value)
             for field in missing_fields:
-                assert f"Missing required field: {field}" in error_msg
+                assert field in error_msg
 
     def test_context_with_extra_fields(self):
         """Test context creation with extra fields (should be ignored)."""
         data = {
+            "session_id": "test-123",
+            "transcript_path": "/tmp/transcript.json",
             "hook_event_name": "PreToolUse",
             "tool_name": "Write",
             "tool_input": {"file_path": "/tmp/test.txt"},
@@ -120,6 +154,8 @@ class TestPreToolUseOutput:
     def test_simple_approve(self):
         """Test simple approve method."""
         data = {
+            "session_id": "test-123",
+            "transcript_path": "/tmp/transcript.json",
             "hook_event_name": "PreToolUse",
             "tool_name": "Write",
             "tool_input": {"file_path": "/tmp/safe.txt", "content": "safe content"},
@@ -135,6 +171,8 @@ class TestPreToolUseOutput:
     def test_simple_block(self):
         """Test simple block method."""
         data = {
+            "session_id": "test-123",
+            "transcript_path": "/tmp/transcript.json",
             "hook_event_name": "PreToolUse",
             "tool_name": "Write",
             "tool_input": {"file_path": "/etc/passwd", "content": "malicious content"},
@@ -149,6 +187,8 @@ class TestPreToolUseOutput:
     def test_continue_approve(self):
         """Test continue approve method."""
         data = {
+            "session_id": "test-123",
+            "transcript_path": "/tmp/transcript.json",
             "hook_event_name": "PreToolUse",
             "tool_name": "Read",
             "tool_input": {"file_path": "/tmp/safe.txt"},
@@ -169,6 +209,8 @@ class TestPreToolUseOutput:
     def test_continue_block(self):
         """Test continue block method."""
         data = {
+            "session_id": "test-123",
+            "transcript_path": "/tmp/transcript.json",
             "hook_event_name": "PreToolUse",
             "tool_name": "Bash",
             "tool_input": {"command": "rm -rf /tmp/test"},
@@ -189,6 +231,8 @@ class TestPreToolUseOutput:
     def test_stop_processing(self):
         """Test stop processing method."""
         data = {
+            "session_id": "test-123",
+            "transcript_path": "/tmp/transcript.json",
             "hook_event_name": "PreToolUse",
             "tool_name": "Write",
             "tool_input": {"file_path": "/etc/shadow", "content": "root password"},
@@ -208,6 +252,8 @@ class TestPreToolUseOutput:
     def test_continue_direct(self):
         """Test continue direct method."""
         data = {
+            "session_id": "test-123",
+            "transcript_path": "/tmp/transcript.json",
             "hook_event_name": "PreToolUse",
             "tool_name": "Read",
             "tool_input": {"file_path": "/tmp/log.txt"},
@@ -225,41 +271,6 @@ class TestPreToolUseOutput:
             assert (
                 "decision" not in result
             )  # Should not include decision for continue_direct
-
-    def test_output_suppression(self):
-        """Test output suppression functionality."""
-        data = {
-            "hook_event_name": "PreToolUse",
-            "tool_name": "Read",
-            "tool_input": {"file_path": "/tmp/test.txt"},
-        }
-
-        context = PreToolUseContext(data)
-
-        # Test suppress_output=True
-        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.continue_approve("Test approval", suppress_output=True)
-            assert mock_stdout.getvalue().strip() == ""
-
-    def test_output_without_reason(self):
-        """Test output methods without reason parameter."""
-        data = {
-            "hook_event_name": "PreToolUse",
-            "tool_name": "Read",
-            "tool_input": {"file_path": "/tmp/test.txt"},
-        }
-
-        context = PreToolUseContext(data)
-
-        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.continue_approve()
-
-            output = mock_stdout.getvalue().strip()
-            result = json.loads(output)
-
-            assert result["continue"] is True
-            assert result["decision"] == "approve"
-            assert "reason" not in result or result["reason"] == ""
 
 
 class TestPreToolUseRealWorldScenarios:

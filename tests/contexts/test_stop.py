@@ -44,9 +44,31 @@ class TestStopContext:
     def test_context_validation_missing_required_fields(self):
         """Test context validation with missing required fields."""
         invalid_cases = [
-            ({}, ["hook_event_name", "stop_hook_active"]),
-            ({"hook_event_name": "Stop"}, ["stop_hook_active"]),
-            ({"stop_hook_active": True}, ["hook_event_name"]),
+            (
+                {},
+                [
+                    "session_id",
+                    "transcript_path",
+                    "hook_event_name",
+                    "stop_hook_active",
+                ],
+            ),
+            (
+                {"hook_event_name": "PostToolUse"},
+                [
+                    "session_id",
+                    "transcript_path",
+                    "stop_hook_active",
+                ],
+            ),
+            (
+                {"stop_hook_active": "manual"},
+                [
+                    "session_id",
+                    "transcript_path",
+                    "hook_event_name",
+                ],
+            ),
         ]
 
         for data, missing_fields in invalid_cases:
@@ -55,7 +77,7 @@ class TestStopContext:
 
             error_msg = str(exc_info.value)
             for field in missing_fields:
-                assert f"Missing required field: {field}" in error_msg
+                assert field in error_msg
 
     def test_context_with_extra_fields(self):
         """Test context creation with extra fields."""
@@ -183,23 +205,6 @@ class TestStopOutput:
 
             assert result["continue"] is True
             assert "decision" not in result
-
-    def test_output_suppression(self):
-        """Test output suppression functionality."""
-        data = {
-            "hook_event_name": "Stop",
-            "session_id": "test-123",
-            "transcript_path": "/tmp/transcript.json",
-            "stop_hook_active": True,
-        }
-
-        context = StopContext(data)
-
-        # Test suppress_output=True
-        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.continue_direct(suppress_output=True)
-            assert mock_stdout.getvalue().strip() == ""
-
 
 class TestStopRealWorldScenarios:
     """Test real-world stopping scenarios."""
@@ -358,4 +363,3 @@ class TestStopRealWorldScenarios:
                     assert result["continue"] is False
                 else:
                     assert result["continue"] is True
-

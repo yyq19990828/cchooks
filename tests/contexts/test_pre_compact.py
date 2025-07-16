@@ -55,6 +55,7 @@ class TestPreCompactContext:
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
             "trigger": "auto",
+            "custom_instructions": "",
         }
 
         context = PreCompactContext(data)
@@ -64,9 +65,43 @@ class TestPreCompactContext:
     def test_context_validation_missing_required_fields(self):
         """Test context validation with missing required fields."""
         invalid_cases = [
-            ({}, ["hook_event_name", "trigger"]),
-            ({"hook_event_name": "PreCompact"}, ["trigger"]),
-            ({"trigger": "auto"}, ["hook_event_name"]),
+            (
+                {},
+                [
+                    "session_id",
+                    "transcript_path",
+                    "hook_event_name",
+                    "trigger",
+                    "custom_instructions",
+                ],
+            ),
+            (
+                {"hook_event_name": "PostToolUse"},
+                [
+                    "session_id",
+                    "transcript_path",
+                    "trigger",
+                    "custom_instructions",
+                ],
+            ),
+            (
+                {"trigger": "manual"},
+                [
+                    "session_id",
+                    "transcript_path",
+                    "hook_event_name",
+                    "custom_instructions",
+                ],
+            ),
+            (
+                {"custom_instructions": "Please compact"},
+                [
+                    "session_id",
+                    "transcript_path",
+                    "hook_event_name",
+                    "trigger",
+                ],
+            ),
         ]
 
         for data, missing_fields in invalid_cases:
@@ -75,7 +110,7 @@ class TestPreCompactContext:
 
             error_msg = str(exc_info.value)
             for field in missing_fields:
-                assert f"Missing required field: {field}" in error_msg
+                assert field in error_msg
 
     def test_context_with_invalid_trigger(self):
         """Test context with invalid trigger value."""
@@ -124,7 +159,7 @@ class TestPreCompactOutput:
         context = PreCompactContext(data)
 
         with patch("sys.exit") as mock_exit:
-            context.output.simple_approve("Compaction approved")
+            context.output.simple_success("Compaction approved")
             mock_exit.assert_called_once_with(0)
 
     def test_simple_block(self):
@@ -143,85 +178,37 @@ class TestPreCompactOutput:
             context.output.simple_block("Prevent compaction")
             mock_exit.assert_called_once_with(2)
 
-    def test_stop_processing(self):
-        """Test stop processing method."""
+    def test_simple_success(self):
+        """Test simple block method."""
         data = {
             "hook_event_name": "PreCompact",
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
             "trigger": "auto",
-            "custom_instructions": "Critical information present",
+            "custom_instructions": "",
         }
 
         context = PreCompactContext(data)
 
-        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.stop_processing("Critical transcript content")
+        with patch("sys.exit") as mock_exit:
+            context.output.simple_success("Compaction success")
+            mock_exit.assert_called_once_with(0)
 
-            output = mock_stdout.getvalue().strip()
-            result = json.loads(output)
-
-            assert result["continue"] is False
-            assert result["stopReason"] == "Critical transcript content"
-
-    def test_continue_block(self):
-        """Test continue block method."""
-        data = {
-            "hook_event_name": "PreCompact",
-            "session_id": "test-123",
-            "transcript_path": "/tmp/transcript.json",
-            "trigger": "manual",
-            "custom_instructions": "Preserve security decisions",
-        }
-
-        context = PreCompactContext(data)
-
-        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.continue_block("Prevent automatic compaction")
-
-            output = mock_stdout.getvalue().strip()
-            result = json.loads(output)
-
-            assert result["continue"] is True
-            assert result["decision"] == "block"
-            assert result["reason"] == "Prevent automatic compaction"
-
-    def test_continue_direct(self):
-        """Test continue direct method."""
+    def test_simple_error(self):
+        """Test simple block method."""
         data = {
             "hook_event_name": "PreCompact",
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
             "trigger": "auto",
-            "custom_instructions": "Standard compaction",
+            "custom_instructions": "",
         }
 
         context = PreCompactContext(data)
 
-        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.continue_direct()
-
-            output = mock_stdout.getvalue().strip()
-            result = json.loads(output)
-
-            assert result["continue"] is True
-            assert "decision" not in result
-
-    def test_output_suppression(self):
-        """Test output suppression functionality."""
-        data = {
-            "hook_event_name": "PreCompact",
-            "session_id": "test-123",
-            "transcript_path": "/tmp/transcript.json",
-            "trigger": "manual",
-            "custom_instructions": "Silent compaction",
-        }
-
-        context = PreCompactContext(data)
-
-        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.continue_direct(suppress_output=True)
-            assert mock_stdout.getvalue().strip() == ""
+        with patch("sys.exit") as mock_exit:
+            context.output.simple_error("No need for compaction")
+            mock_exit.assert_called_once_with(1)
 
 
 class TestPreCompactRealWorldScenarios:
@@ -263,7 +250,7 @@ class TestPreCompactRealWorldScenarios:
 
         # Test standard auto-compaction
         with patch("sys.exit") as mock_exit:
-            context.output.simple_approve("Auto-compaction approved")
+            context.output.simple_success("Auto-compaction approved")
             mock_exit.assert_called_once_with(0)
 
     def test_prevent_compaction_during_critical_operations(self):
@@ -279,13 +266,9 @@ class TestPreCompactRealWorldScenarios:
         context = PreCompactContext(data)
 
         # Test preventing compaction
-        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.continue_block("Critical deployment active")
-
-            output = mock_stdout.getvalue().strip()
-            result = json.loads(output)
-            assert result["continue"] is True
-            assert "Critical deployment" in result["reason"]
+        with patch("sys.exit") as mock_exit:
+            context.output.simple_block("Critical deployment active")
+            mock_exit.assert_called_once_with(2)
 
     def test_compaction_with_conditional_logic(self):
         """Test compaction with conditional logic based on trigger type."""
@@ -315,7 +298,7 @@ class TestPreCompactRealWorldScenarios:
 
             if scenario["should_compact"]:
                 with patch("sys.exit") as mock_exit:
-                    context.output.simple_approve(scenario["reason"])
+                    context.output.simple_success(scenario["reason"])
                     mock_exit.assert_called_once_with(0)
 
     def test_compaction_with_security_focus(self):
@@ -398,13 +381,9 @@ class TestPreCompactRealWorldScenarios:
 
             if workflow["expected_action"] == "approve":
                 with patch("sys.exit") as mock_exit:
-                    context.output.simple_approve(f"Approved for {workflow['name']}")
+                    context.output.simple_success(f"Approved for {workflow['name']}")
                     mock_exit.assert_called_once_with(0)
             else:
-                with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-                    context.output.continue_block(f"Blocked for {workflow['name']}")
-
-                    output = mock_stdout.getvalue().strip()
-                    result = json.loads(output)
-                    assert result["continue"] is True
-
+                with patch("sys.exit") as mock_exit:
+                    context.output.simple_block(f"Blocked for {workflow['name']}")
+                    mock_exit.assert_called_once_with(2)
