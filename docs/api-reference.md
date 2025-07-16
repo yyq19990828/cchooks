@@ -109,7 +109,8 @@ if isinstance(context, PreToolUseContext):
 - `defer(suppress_output: bool = False)` - Defer to Claude's permission system
 - `halt(reason: str, suppress_output: bool = False)` - Stop all processing immediately
 - `exit_success(message: Optional[str] = None) -> NoReturn` - Exit 0 (success)
-- `exit_block(message: str) -> NoReturn` - Exit 2 (blocking error)
+- `exit_non_block(message: str) -> NoReturn` - Exit 1 (non-blocking error)
+- `exit_block(reason: str) -> NoReturn` - Exit 2 (blocking error)
 
 ### `PostToolUseContext`
 
@@ -138,7 +139,8 @@ if isinstance(context, PostToolUseContext):
 - `ignore(suppress_output: bool = False)` - Ignore tool results
 - `halt(reason: str, suppress_output: bool = False)` - Stop all processing immediately
 - `exit_success(message: Optional[str] = None) -> NoReturn` - Exit 0 (success)
-- `exit_block(message: str) -> NoReturn` - Exit 2 (blocking error)
+- `exit_non_block(message: str) -> NoReturn` - Exit 1 (non-blocking error)
+- `exit_block(reason: str) -> NoReturn` - Exit 2 (blocking error)
 
 ### `NotificationContext`
 
@@ -159,8 +161,8 @@ if isinstance(context, NotificationContext):
 **Output Methods:**
 - `acknowledge(message: Optional[str]) -> NoReturn` - Acknowledge and process information
 - `exit_success(message: Optional[str]) -> NoReturn` - Exit 0 (success)
+- `exit_non_block(message: str) -> NoReturn` - Exit 1 (non-blocking error)
 - `exit_block(message: str) -> NoReturn` - Exit 2 (blocking error)
-- `exit_error(message: str) -> NoReturn` - Exit 1 (non-blocking error)
 
 > `simple_error` and `simple_block` behavior of `Notification Hook` and `PreCompact Hook` is actually the same. All of them show `reason` or `message` to the user and Claude will keep going. And `simple_success` will show `message` in transcript (default hidden to the user). For details see [official docs](https://docs.anthropic.com/en/docs/claude-code/hooks#simple%3A-exit-code)
 
@@ -188,7 +190,8 @@ if isinstance(context, StopContext):
 - `prevent(reason: str, suppress_output: bool = False)` - Prevent Claude from stopping
 - `halt(reason: str, suppress_output: bool = False)` - Stop all processing immediately
 - `exit_success(message: Optional[str] = None) -> NoReturn` - Exit 0 (success)
-- `exit_block(message: str) -> NoReturn` - Exit 2 (blocking error)
+- `exit_non_block(message: str) -> NoReturn` - Exit 1 (non-blocking error)
+- `exit_block(reason: str) -> NoReturn` - Exit 2 (blocking error)
 
 ### `SubagentStopContext`
 
@@ -232,8 +235,8 @@ if isinstance(context, PreCompactContext):
 **Output Methods:**
 - `acknowledge(message: Optional[str]) -> NoReturn` - Acknowledge the compaction
 - `exit_success(message: Optional[str]) -> NoReturn` - Exit 0 (success)
+- `exit_non_block(message: str) -> NoReturn` - Exit 1 (non-blocking error)
 - `exit_block(message: str) -> NoReturn` - Exit 2 (blocking error)
-- `exit_error(message: str) -> NoReturn` - Exit 1 (non-blocking error)
 
 ## Type Definitions
 
