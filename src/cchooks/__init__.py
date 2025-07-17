@@ -1,4 +1,6 @@
 """Claude Code hooks Python module.
+Copyright (c) 2025 Haoyuan Li
+MIT License
 
 This module provides a comprehensive, type-safe interface for developing
 Claude Code hooks with automatic hook type detection and specialized
