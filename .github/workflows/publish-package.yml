@@ -6,7 +6,7 @@ on:
 
 jobs:
   check-and-build:
-    uses: ./.github/workflows/check-build.yml
+    uses: gowaylee/cchooks/.github/workflows/build-check.yml@main
 
   upload-package:
     runs-on: self-hosted
