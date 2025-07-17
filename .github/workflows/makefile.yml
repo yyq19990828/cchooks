@@ -14,6 +14,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Install uv
+      run: make install-uv
+
     - name: Install dependencies
       run: make setup
 

@@ -21,6 +21,16 @@ setup: ## Install development dependencies and setup environment
 	@uv sync
 	@echo "Development environment ready!"
 
+.PHONY: install-uv
+install-uv: ## Install uv package manager (if not already installed)
+	@if command -v uv >/dev/null 2>&1; then \
+		echo "uv is already installed: $$(uv --version)"; \
+	else \
+		echo "Installing uv package manager..."; \
+		curl -LsSf https://astral.sh/uv/install.sh | sh; \
+		echo "uv installed successfully!"; \
+	fi
+
 .PHONY: lock
 lock: ## Update dependency lockfile
 	@echo "Updating lockfile..."
