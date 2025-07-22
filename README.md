@@ -1,6 +1,6 @@
-# cchooks
+# cchooks — Claude Code Hook SDK for Python
 
-A lightweight Python library that makes building Claude Code hooks as simple as writing a few lines of code. Stop worrying about JSON parsing and focus on what your hook should actually do.
+A lightweight Python Toolkit that makes building Claude Code hooks as simple as writing a few lines of code. Stop worrying about JSON parsing and focus on what your hook should actually do.
 
 > **New to Claude Code hooks?** Check the [official docs](https://docs.anthropic.com/en/docs/claude-code/hooks) for the big picture.
 
@@ -24,13 +24,16 @@ uv add cchooks
 
 ## Quick Start
 
-Build a hook in 30 seconds that blocks dangerous file writes:
+Build a PreToolUse hook that blocks dangerous file writes:
 
 ```python
 #!/usr/bin/env python3
-from cchooks import create_context
+from cchooks import create_context, PreToolUseContext
 
 c = create_context()
+
+# Determine hook type
+assert isinstance(c, PreToolUseContext)
 
 # Block writes to .env files
 if c.tool_name == "Write" and ".env" in c.tool_input.get("file_path", ""):
@@ -47,7 +50,7 @@ chmod +x hooks/env-guard.py
 
 That's it. No JSON parsing, no validation headaches.
 
-## 3-Minute Tutorial
+## Brief Tutorial
 
 Build each hook type with real examples:
 
@@ -56,10 +59,11 @@ Block dangerous commands before they run:
 
 ```python
 #!/usr/bin/env python3
-from cchooks import create_context
+from cchooks import create_context, PreToolUseContext
 
 c = create_context()
 
+assert isinstance(c, PreToolUseContext)
 # Block rm -rf commands
 if c.tool_name == "Bash" and "rm -rf" in c.tool_input.get("command", ""):
     c.output.exit_block("You should not execute this command: System protection: rm -rf blocked")
@@ -73,10 +77,11 @@ Format Python files after writing:
 ```python
 #!/usr/bin/env python3
 import subprocess
-from cchooks import create_context
+from cchooks import create_context, PostToolUseContext
 
 c = create_context()
 
+assert isinstance(c, PostToolUseContext)
 if c.tool_name == "Write" and c.tool_input.get("file_path", "").endswith(".py"):
     file_path = c.tool_input["file_path"]
     subprocess.run(["black", file_path])
@@ -89,10 +94,11 @@ Send desktop notifications:
 ```python
 #!/usr/bin/env python3
 import os
-from cchooks import create_context
+from cchooks import create_context, NotificationContext
 
 c = create_context()
 
+assert isinstance(c, NotificationContext)
 if "permission" in c.message.lower():
     os.system(f'notify-send "Claude" "{c.message}"')
 ```
@@ -102,10 +108,11 @@ Keep Claude working on long tasks:
 
 ```python
 #!/usr/bin/env python3
-from cchooks import create_context
+from cchooks import create_context, StopContext
 
 c = create_context()
 
+assert isinstance(c, StopContext)
 if not c.stop_hook_active: # Claude has not been activated by other Stop Hook
     c.output.prevent("Hey Claude, you should try to do more works!") # Prevent from stopping, and prompt Claude
 else:
@@ -118,8 +125,9 @@ else:
 Same as Stop, but for subagents:
 
 ```python
-from cchooks import create_context
+from cchooks import create_context, SubagentStopContext
 c = create_context()
+assert isinstance(c, SubagentStopContext)
 c.output.simple_approve()  # Let subagents complete
 ```
 
@@ -127,10 +135,11 @@ c.output.simple_approve()  # Let subagents complete
 Add custom compaction rules:
 
 ```python
-from cchooks import create_context
+from cchooks import create_context, PreCompactContext
 
 c = create_context()
 
+assert isinstance(c, PreCompactContext)
 if c.custom_instructions:
     print(f"Using custom compaction: {c.custom_instructions}")
 ```
@@ -148,8 +157,9 @@ if c.custom_instructions:
 
 ### Simple Mode (Exit Codes)
 ```python
-# Exit 0 = approve, Exit 2 = block
+# Exit 0 = approve, Exit 1 = non-bloc, Exit 2 = block
 c.output.exit_success()  # ✅
+c.output.exit_non_block("reason")  # ❌
 c.output.exit_block("reason")  # ❌
 ```
 
@@ -168,13 +178,14 @@ Block dangerous operations across multiple tools:
 
 ```python
 #!/usr/bin/env python3
-from cchooks import create_context
+from cchooks import create_context, PreToolUseContext
 
 DANGEROUS_COMMANDS = {"rm -rf", "sudo", "format", "fdisk"}
 SENSITIVE_FILES = {".env", "secrets.json", "id_rsa"}
 
 c = create_context()
 
+assert isinstance(c, PreToolUseContext)
 # Block dangerous Bash commands
 if c.tool_name == "Bash":
     command = c.tool_input.get("command", "")
@@ -201,10 +212,11 @@ Lint Python files after writing:
 ```python
 #!/usr/bin/env python3
 import subprocess
-from cchooks import create_context
+from cchooks import create_context, PostToolUseContext
 
 c = create_context()
 
+assert isinstance(c, PostToolUseContext)
 if c.tool_name == "Write" and c.tool_input.get("file_path", "").endswith(".py"):
     file_path = c.tool_input["file_path"]
 
@@ -226,10 +238,11 @@ Auto-commit file changes:
 ```python
 #!/usr/bin/env python3
 import subprocess
-from cchooks import create_context
+from cchooks import create_context, PostToolUseContext
 
 c = create_context()
 
+assert isinstance(c, PostToolUseContext)
 if c.tool_name == "Write":
     file_path = c.tool_input.get("file_path", "")
 
@@ -259,10 +272,11 @@ Log all permission requests:
 #!/usr/bin/env python3
 import json
 import datetime
-from cchooks import create_context
+from cchooks import create_context, PreToolUseContext
 
 c = create_context()
 
+assert isinstance(c, PreToolUseContext)
 if c.tool_name == "Write":
     log_entry = {
         "timestamp": datetime.datetime.now().isoformat(),
