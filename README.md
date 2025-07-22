@@ -157,7 +157,7 @@ if c.custom_instructions:
 
 ### Simple Mode (Exit Codes)
 ```python
-# Exit 0 = approve, Exit 1 = non-bloc, Exit 2 = block
+# Exit 0 = approve, Exit 1 = non-block, Exit 2 = block
 c.output.exit_success()  # ✅
 c.output.exit_non_block("reason")  # ❌
 c.output.exit_block("reason")  # ❌
