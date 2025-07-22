@@ -19,6 +19,7 @@ class TestPreToolUseContext:
             "hook_event_name": "PreToolUse",
             "session_id": "test-session-123",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "tool_name": "Write",
             "tool_input": {"file_path": "/tmp/test.txt", "content": "Hello World"},
         }
@@ -40,6 +41,7 @@ class TestPreToolUseContext:
             "hook_event_name": "PreToolUse",
             "session_id": "sess_abc123def456",
             "transcript_path": "/Users/user/.claude/transcript.json",
+            "cwd": "/Users/user/project",
             "tool_name": "Bash",
             "tool_input": {
                 "command": "ls -la",
@@ -70,7 +72,9 @@ class TestPreToolUseContext:
                 "hook_event_name": "PreToolUse",
                 "session_id": "test-123",
                 "transcript_path": "/tmp/transcript.json",
+                "cwd": "/tmp",
                 "tool_name": tool_name,
+                "cwd": "/home/user/project",
                 "tool_input": tool_input,
             }
 
@@ -133,6 +137,7 @@ class TestPreToolUseContext:
         data = {
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "hook_event_name": "PreToolUse",
             "tool_name": "Write",
             "tool_input": {"file_path": "/tmp/test.txt"},
@@ -156,6 +161,7 @@ class TestPreToolUseOutput:
         data = {
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "hook_event_name": "PreToolUse",
             "tool_name": "Write",
             "tool_input": {"file_path": "/tmp/safe.txt", "content": "safe content"},
@@ -173,6 +179,7 @@ class TestPreToolUseOutput:
         data = {
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "hook_event_name": "PreToolUse",
             "tool_name": "Write",
             "tool_input": {"file_path": "/etc/passwd", "content": "malicious content"},
@@ -189,6 +196,7 @@ class TestPreToolUseOutput:
         data = {
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "hook_event_name": "PreToolUse",
             "tool_name": "Read",
             "tool_input": {"file_path": "/tmp/safe.txt"},
@@ -211,6 +219,7 @@ class TestPreToolUseOutput:
         data = {
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "hook_event_name": "PreToolUse",
             "tool_name": "Bash",
             "tool_input": {"command": "rm -rf /tmp/test"},
@@ -233,6 +242,7 @@ class TestPreToolUseOutput:
         data = {
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "hook_event_name": "PreToolUse",
             "tool_name": "Write",
             "tool_input": {"file_path": "/etc/shadow", "content": "root password"},
@@ -254,6 +264,7 @@ class TestPreToolUseOutput:
         data = {
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "hook_event_name": "PreToolUse",
             "tool_name": "Read",
             "tool_input": {"file_path": "/tmp/log.txt"},
@@ -285,6 +296,7 @@ class TestPreToolUseRealWorldScenarios:
                 "hook_event_name": "PreToolUse",
                 "session_id": "test-123",
                 "transcript_path": "/tmp/transcript.json",
+                "cwd": "/home/user/project",
                 "tool_name": "Write",
                 "tool_input": {"file_path": file_path, "content": "malicious"},
             }
@@ -312,7 +324,9 @@ class TestPreToolUseRealWorldScenarios:
                 "hook_event_name": "PreToolUse",
                 "session_id": "test-123",
                 "transcript_path": "/tmp/transcript.json",
+                "cwd": "/tmp",
                 "tool_name": tool_name,
+                "cwd": "/home/user/project",
                 "tool_input": tool_input,
             }
 
@@ -337,6 +351,7 @@ class TestPreToolUseRealWorldScenarios:
                 "hook_event_name": "PreToolUse",
                 "session_id": "test-123",
                 "transcript_path": "/tmp/transcript.json",
+                "cwd": "/home/user/project",
                 "tool_name": "Bash",
                 "tool_input": {"command": dangerous_command},
             }

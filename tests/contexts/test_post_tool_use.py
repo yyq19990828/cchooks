@@ -19,6 +19,7 @@ class TestPostToolUseContext:
             "hook_event_name": "PostToolUse",
             "session_id": "test-session-123",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "tool_name": "Write",
             "tool_input": {"file_path": "/tmp/test.txt", "content": "Hello World"},
             "tool_response": {"success": True, "content": "File written successfully"},
@@ -45,6 +46,7 @@ class TestPostToolUseContext:
             "hook_event_name": "PostToolUse",
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "tool_name": "Write",
             "tool_input": {"file_path": "/etc/protected.txt", "content": "attempt"},
             "tool_response": {"success": False, "error": "Permission denied"},
@@ -127,6 +129,7 @@ class TestPostToolUseOutput:
         data = {
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "hook_event_name": "PostToolUse",
             "tool_name": "Write",
             "tool_input": {"file_path": "/tmp/test.txt", "content": "test"},
@@ -144,6 +147,7 @@ class TestPostToolUseOutput:
         data = {
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "hook_event_name": "PostToolUse",
             "tool_name": "Write",
             "tool_input": {"file_path": "/tmp/test.txt", "content": "test"},
@@ -161,6 +165,7 @@ class TestPostToolUseOutput:
         data = {
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "hook_event_name": "PostToolUse",
             "tool_name": "Write",
             "tool_input": {"file_path": "/tmp/test.py", "content": "print('hello')"},
@@ -184,6 +189,7 @@ class TestPostToolUseOutput:
         data = {
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "hook_event_name": "PostToolUse",
             "tool_name": "Write",
             "tool_input": {"file_path": "/tmp/test.txt", "content": "test"},
@@ -206,6 +212,7 @@ class TestPostToolUseOutput:
         data = {
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "hook_event_name": "PostToolUse",
             "tool_name": "Write",
             "tool_input": {"file_path": "/tmp/test.txt", "content": "test"},
@@ -229,6 +236,7 @@ class TestPostToolUseOutput:
             "hook_event_name": "PostToolUse",
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "tool_name": "Write",
             "tool_input": {"file_path": "/tmp/test.py", "content": "print('hello')"},
             "tool_response": {"success": True, "content": "File written"},
@@ -249,6 +257,7 @@ class TestPostToolUseRealWorldScenarios:
             "hook_event_name": "PostToolUse",
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "tool_name": "Write",
             "tool_input": {
                 "file_path": "/project/src/utils.py",
@@ -279,6 +288,7 @@ class TestPostToolUseRealWorldScenarios:
                 "hook_event_name": "PostToolUse",
                 "session_id": "test-123",
                 "transcript_path": "/tmp/transcript.json",
+                "cwd": "/home/user/project",
                 "tool_name": tool_name,
                 "tool_input": tool_input,
                 "tool_response": {"success": True, "content": expected_msg},
@@ -297,6 +307,7 @@ class TestPostToolUseRealWorldScenarios:
             "hook_event_name": "PostToolUse",
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "tool_name": "Write",
             "tool_input": {"file_path": "/protected/file.txt", "content": "test"},
             "tool_response": {
@@ -326,6 +337,7 @@ class TestPostToolUseRealWorldScenarios:
             "hook_event_name": "PostToolUse",
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "tool_name": "Write",
             "tool_input": {"file_path": "/tmp/temp_file.txt", "content": "temporary"},
             "tool_response": {"success": True, "content": "Temporary file created"},

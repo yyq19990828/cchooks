@@ -33,9 +33,9 @@ StopDecision = Literal["block"]
 CommonInputFields = Dict[str, Any]  # session_id, transcript_path, hook_event_name
 
 # Hook-specific input types
-PreToolUseInput = Dict[str, Any]  # + tool_name, tool_input
-PostToolUseInput = Dict[str, Any]  # + tool_name, tool_input, tool_response
-NotificationInput = Dict[str, Any]  # + message
+PreToolUseInput = Dict[str, Any]  # + tool_name, tool_input, cwd
+PostToolUseInput = Dict[str, Any]  # + tool_name, tool_input, tool_response, cwd
+NotificationInput = Dict[str, Any]  # + message, cwd
 StopInput = Dict[str, Any]  # + stop_hook_active
 SubagentStopInput = Dict[str, Any]  # + stop_hook_active
 PreCompactInput = Dict[str, Any]  # + trigger, custom_instructions

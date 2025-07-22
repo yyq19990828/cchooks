@@ -17,6 +17,7 @@ class TestNotificationContext:
             "hook_event_name": "Notification",
             "session_id": "test-session-123",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "message": "Permission required for file modification",
         }
 
@@ -45,6 +46,7 @@ class TestNotificationContext:
                 "hook_event_name": "Notification",
                 "session_id": "test-123",
                 "transcript_path": "/tmp/transcript.json",
+                "cwd": "/home/user/project",
                 "message": message,
             }
 
@@ -87,6 +89,7 @@ class TestNotificationContext:
             "hook_event_name": "Notification",
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "message": "Test notification",
             "extra_field": "should_be_ignored",
             "priority": "high",
@@ -109,6 +112,7 @@ class TestNotificationOutput:
             "hook_event_name": "Notification",
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "message": "Test notification",
         }
 
@@ -124,6 +128,7 @@ class TestNotificationOutput:
             "hook_event_name": "Notification",
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "message": "Test notification",
         }
 
@@ -153,6 +158,7 @@ class TestNotificationRealWorldScenarios:
                 "hook_event_name": "Notification",
                 "session_id": "test-123",
                 "transcript_path": "/tmp/transcript.json",
+                "cwd": "/home/user/project",
                 "message": message,
             }
 
@@ -179,6 +185,7 @@ class TestNotificationRealWorldScenarios:
                 "hook_event_name": "Notification",
                 "session_id": "test-123",
                 "transcript_path": "/tmp/transcript.json",
+                "cwd": "/home/user/project",
                 "message": message,
             }
 
@@ -203,6 +210,7 @@ class TestNotificationRealWorldScenarios:
                 "hook_event_name": "Notification",
                 "session_id": "test-123",
                 "transcript_path": "/tmp/transcript.json",
+                "cwd": "/home/user/project",
                 "message": message,
             }
 
@@ -227,6 +235,7 @@ class TestNotificationRealWorldScenarios:
                 "hook_event_name": "Notification",
                 "session_id": "test-123",
                 "transcript_path": "/tmp/transcript.json",
+                "cwd": "/home/user/project",
                 "message": message,
             }
 
@@ -251,6 +260,7 @@ class TestNotificationRealWorldScenarios:
                 "hook_event_name": "Notification",
                 "session_id": "test-123",
                 "transcript_path": "/tmp/transcript.json",
+                "cwd": "/home/user/project",
                 "message": message,
             }
 
@@ -277,6 +287,7 @@ class TestNotificationRealWorldScenarios:
                 "hook_event_name": "Notification",
                 "session_id": "test-123",
                 "transcript_path": "/tmp/transcript.json",
+                "cwd": "/home/user/project",
                 "message": message,
             }
 
@@ -303,6 +314,7 @@ class TestNotificationRealWorldScenarios:
                 "hook_event_name": "Notification",
                 "session_id": "test-123",
                 "transcript_path": "/tmp/transcript.json",
+                "cwd": "/home/user/project",
                 "message": notification["message"],
             }
 

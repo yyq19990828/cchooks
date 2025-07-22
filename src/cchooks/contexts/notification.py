@@ -16,9 +16,10 @@ class NotificationContext(BaseHookContext):
 
     def _validate_notification_fields(self) -> None:
         """Validate Notification-specific fields."""
-
-        if "message" not in self._input_data:
-            self._missing_fields.append("message")
+        required_fields = ["message", "cwd"]
+        for field in required_fields:
+            if field not in self._input_data:
+                self._missing_fields.append(field)
 
         if self._missing_fields:
             raise HookValidationError(
@@ -29,6 +30,11 @@ class NotificationContext(BaseHookContext):
     def message(self) -> str:
         """Get the notification message."""
         return str(self._input_data["message"])
+
+    @property
+    def cwd(self) -> str:
+        """Get the current working directory."""
+        return str(self._input_data["cwd"])
 
     @property
     def output(self) -> "NotificationOutput":

@@ -19,7 +19,7 @@ class PreToolUseContext(BaseHookContext):
 
     def _validate_pre_tool_use_fields(self) -> None:
         """Validate PreToolUse-specific fields."""
-        required_fields = ["tool_name", "tool_input"]
+        required_fields = ["tool_name", "tool_input", "cwd"]
         for field in required_fields:
             if field not in self._input_data:
                 self._missing_fields.append(field)
@@ -41,6 +41,11 @@ class PreToolUseContext(BaseHookContext):
     def tool_input(self) -> Dict[str, Any]:
         """Get the tool input parameters."""
         return dict(self._input_data["tool_input"])
+
+    @property
+    def cwd(self) -> str:
+        """Get the current working directory."""
+        return str(self._input_data["cwd"])
 
     @property
     def output(self) -> "PreToolUseOutput":

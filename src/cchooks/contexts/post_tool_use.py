@@ -19,7 +19,7 @@ class PostToolUseContext(BaseHookContext):
 
     def _validate_post_tool_use_fields(self) -> None:
         """Validate PostToolUse-specific fields."""
-        required_fields = ["tool_name", "tool_input", "tool_response"]
+        required_fields = ["tool_name", "tool_input", "tool_response", "cwd"]
         for field in required_fields:
             if field not in self._input_data:
                 self._missing_fields.append(field)
@@ -49,6 +49,11 @@ class PostToolUseContext(BaseHookContext):
     def tool_response(self) -> Dict[str, Any]:
         """Get the tool response data."""
         return dict(self._input_data["tool_response"])
+
+    @property
+    def cwd(self) -> str:
+        """Get the current working directory."""
+        return str(self._input_data["cwd"])
 
     @property
     def output(self) -> "PostToolUseOutput":

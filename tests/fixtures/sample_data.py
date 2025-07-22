@@ -8,6 +8,7 @@ SAMPLE_PRE_TOOL_USE_WRITE = {
     "hook_event_name": "PreToolUse",
     "session_id": "sess_abc123def456",
     "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
+    "cwd": "/Users/user/project",
     "tool_name": "Write",
     "tool_input": {
         "file_path": "/Users/user/project/src/main.py",
@@ -19,6 +20,7 @@ SAMPLE_PRE_TOOL_USE_BASH = {
     "hook_event_name": "PreToolUse",
     "session_id": "sess_abc123def456",
     "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
+    "cwd": "/Users/user/project",
     "tool_name": "Bash",
     "tool_input": {
         "command": "ls -la /tmp",
@@ -30,6 +32,7 @@ SAMPLE_PRE_TOOL_USE_DANGEROUS = {
     "hook_event_name": "PreToolUse",
     "session_id": "sess_abc123def456",
     "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
+    "cwd": "/Users/user/project",
     "tool_name": "Bash",
     "tool_input": {"command": "rm -rf /", "description": "Dangerous command"},
 }
@@ -38,6 +41,7 @@ SAMPLE_POST_TOOL_USE_SUCCESS = {
     "hook_event_name": "PostToolUse",
     "session_id": "sess_abc123def456",
     "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
+    "cwd": "/Users/user/project",
     "tool_name": "Write",
     "tool_input": {
         "file_path": "/Users/user/project/src/main.py",
@@ -53,6 +57,7 @@ SAMPLE_POST_TOOL_USE_ERROR = {
     "hook_event_name": "PostToolUse",
     "session_id": "sess_abc123def456",
     "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
+    "cwd": "/Users/user/project",
     "tool_name": "Write",
     "tool_input": {
         "file_path": "/etc/protected_file.txt",
@@ -68,6 +73,7 @@ SAMPLE_NOTIFICATION_WARNING = {
     "hook_event_name": "Notification",
     "session_id": "sess_abc123def456",
     "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
+    "cwd": "/Users/user/project",
     "message": "Permission required: User needs to approve file modification in /etc/hosts",
 }
 
@@ -75,6 +81,7 @@ SAMPLE_NOTIFICATION_INFO = {
     "hook_event_name": "Notification",
     "session_id": "sess_abc123def456",
     "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
+    "cwd": "/Users/user/project",
     "message": "Auto-formatting applied to /Users/user/project/src/utils.py",
 }
 

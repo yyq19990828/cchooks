@@ -25,6 +25,7 @@ class TestRealWorldSecurityScenarios:
             "hook_event_name": "PreToolUse",
             "session_id": "security-session-123",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "tool_name": "Write",
             "tool_input": {
                 "file_path": "/etc/passwd",
@@ -47,6 +48,7 @@ class TestRealWorldSecurityScenarios:
             "hook_event_name": "PreToolUse",
             "session_id": "config-session-456",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "tool_name": "Write",
             "tool_input": {
                 "file_path": "/home/user/project/.env.example",
@@ -77,6 +79,7 @@ class TestRealWorldSecurityScenarios:
                 "hook_event_name": "PreToolUse",
                 "session_id": f"bash-session-{hash(command) % 1000}",
                 "transcript_path": "/tmp/transcript.json",
+                "cwd": "/home/user/project",
                 "tool_name": "Bash",
                 "tool_input": {
                     "command": command,
@@ -107,6 +110,7 @@ class TestRealWorldDevelopmentWorkflows:
             "hook_event_name": "PostToolUse",
             "session_id": "dev-session-789",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "tool_name": "Write",
             "tool_input": {
                 "file_path": "/project/src/utils.py",
@@ -135,6 +139,7 @@ class TestRealWorldDevelopmentWorkflows:
             "hook_event_name": "Notification",
             "session_id": "build-session-101",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "message": "Build completed successfully: 42 tests passed, 0 failed",
         }
 
@@ -152,6 +157,7 @@ class TestRealWorldDevelopmentWorkflows:
             "hook_event_name": "PostToolUse",
             "session_id": "error-session-202",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "tool_name": "Write",
             "tool_input": {
                 "file_path": "/protected/system.log",
@@ -181,6 +187,7 @@ class TestRealWorldConversationManagement:
             "hook_event_name": "Stop",
             "session_id": "conversation-303",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "stop_hook_active": False,  # Indicates pending tasks
         }
 
@@ -204,6 +211,7 @@ class TestRealWorldConversationManagement:
             "hook_event_name": "SubagentStop",
             "session_id": "subagent-404",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "stop_hook_active": True,  # Indicates completion
         }
 
@@ -225,6 +233,7 @@ class TestRealWorldConversationManagement:
             "hook_event_name": "PreCompact",
             "session_id": "compaction-505",
             "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
             "trigger": "auto",
             "custom_instructions": "Preserve security decisions and error messages",
         }
@@ -254,6 +263,7 @@ class TestRealWorldIntegrationScenarios:
                     "hook_event_name": "PreToolUse",
                     "session_id": "deploy-workflow-1",
                     "transcript_path": "/tmp/transcript.json",
+                    "cwd": "/home/user/project",
                     "tool_name": "Bash",
                     "tool_input": {
                         "command": "./deploy.sh production",
@@ -269,6 +279,7 @@ class TestRealWorldIntegrationScenarios:
                     "hook_event_name": "PostToolUse",
                     "session_id": "deploy-workflow-2",
                     "transcript_path": "/tmp/transcript.json",
+                    "cwd": "/home/user/project",
                     "tool_name": "Bash",
                     "tool_input": {
                         "command": "./deploy.sh production",
@@ -288,6 +299,7 @@ class TestRealWorldIntegrationScenarios:
                     "hook_event_name": "Notification",
                     "session_id": "deploy-workflow-3",
                     "transcript_path": "/tmp/transcript.json",
+                    "cwd": "/home/user/project",
                     "message": "Production deployment v2.1.0 completed successfully",
                 },
                 "expected": "process",
@@ -336,6 +348,7 @@ class TestRealWorldIntegrationScenarios:
                     "hook_event_name": "PreToolUse",
                     "session_id": "audit-session",
                     "transcript_path": "/tmp/transcript.json",
+                    "cwd": "/home/user/project",
                     "tool_name": "Read",
                     "tool_input": {"file_path": scenario["file_path"]},
                 }
@@ -344,6 +357,7 @@ class TestRealWorldIntegrationScenarios:
                     "hook_event_name": "PreToolUse",
                     "session_id": "audit-session",
                     "transcript_path": "/tmp/transcript.json",
+                    "cwd": "/home/user/project",
                     "tool_name": "Bash",
                     "tool_input": {
                         "command": scenario["command"],
@@ -413,6 +427,7 @@ class TestRealWorldIntegrationScenarios:
                     "hook_event_name": "PreToolUse",
                     "session_id": "dev-cycle",
                     "transcript_path": "/tmp/transcript.json",
+                    "cwd": "/home/user/project",
                     "tool_name": step["tool"],
                     "tool_input": step["input"],
                 }
@@ -421,6 +436,7 @@ class TestRealWorldIntegrationScenarios:
                     "hook_event_name": "PostToolUse",
                     "session_id": "dev-cycle",
                     "transcript_path": "/tmp/transcript.json",
+                    "cwd": "/home/user/project",
                     "tool_name": step["tool"],
                     "tool_input": step["input"],
                     "tool_response": step["response"],
@@ -430,6 +446,7 @@ class TestRealWorldIntegrationScenarios:
                     "hook_event_name": "Notification",
                     "session_id": "dev-cycle",
                     "transcript_path": "/tmp/transcript.json",
+                    "cwd": "/home/user/project",
                     "message": step["message"],
                 }
             else:
@@ -437,6 +454,7 @@ class TestRealWorldIntegrationScenarios:
                     "hook_event_name": "Stop",
                     "session_id": "dev-cycle",
                     "transcript_path": "/tmp/transcript.json",
+                    "cwd": "/home/user/project",
                     "stop_hook_active": step["stop_hook_active"],
                 }
 
