@@ -9,7 +9,7 @@ jobs:
     uses: gowaylee/cchooks/.github/workflows/build-check.yml@main
 
   upload-package:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
