@@ -25,8 +25,8 @@ Hook Types:
     - PreCompact: Runs before transcript compaction
 """
 
-from typing import Union, TextIO
 import sys
+from typing import TextIO, Union
 
 from .contexts import (
     BaseHookContext,
@@ -49,6 +49,17 @@ from .exceptions import (
     HookValidationError,
     InvalidHookTypeError,
     ParseError,
+)
+from .output_utils import (
+    exit_block,
+    exit_non_block,
+    exit_success,
+    handle_context_error,
+    handle_invalid_hook_type,
+    handle_parse_error,
+    handle_validation_error,
+    output_json,
+    safe_create_context,
 )
 from .utils import read_json_from_stdin, validate_required_fields
 
@@ -126,6 +137,17 @@ __all__ = [
     # Utilities
     "read_json_from_stdin",
     "validate_required_fields",
+    # Output utilities
+    "output_utils",
+    "exit_success",
+    "exit_non_block",
+    "exit_block",
+    "output_json",
+    "handle_parse_error",
+    "handle_validation_error",
+    "handle_invalid_hook_type",
+    "handle_context_error",
+    "safe_create_context",
     # Type aliases
     "HookContext",
 ]

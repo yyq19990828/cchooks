@@ -128,7 +128,7 @@ Same as Stop, but for subagents:
 from cchooks import create_context, SubagentStopContext
 c = create_context()
 assert isinstance(c, SubagentStopContext)
-c.output.simple_approve()  # Let subagents complete
+c.output.allow()  # Let subagents complete
 ```
 
 ### PreCompact (Custom Instructions)
@@ -142,6 +142,65 @@ c = create_context()
 assert isinstance(c, PreCompactContext)
 if c.custom_instructions:
     print(f"Using custom compaction: {c.custom_instructions}")
+```
+
+## Standalone Output Utilities
+
+### Direct Control
+
+When you need direct control over output and exit behavior outside of context objects, use these standalone utilities:
+
+```python
+#!/usr/bin/env python3
+from cchooks import exit_success, exit_block, exit_non_block, output_json
+
+# Direct exit control
+exit_success("Operation completed successfully")
+exit_block("Security violation detected")
+exit_non_block("Warning: something unexpected happened")
+
+# JSON output
+output_json({"status": "error", "reason": "invalid input"})
+```
+
+### Available Standalone Functions
+
+- `exit_success(message=None)` - Exit with code 0 (success)
+- `exit_non_block(message, exit_code=1)` - Exit with error code (non-blocking)
+- `exit_block(reason)` - Exit with code 2 (blocking error)
+- `output_json(data)` - Output JSON data to stdout
+- `safe_create_context()` - Safe wrapper with built-in error handling
+- `handle_context_error(error)` - Unified error handler for context creation
+
+### Error Handling
+
+Handle context creation errors gracefully with built-in utilities:
+
+```python
+#!/usr/bin/env python3
+from cchooks import safe_create_context, PreToolUseContext
+
+# Automatic error handling - exits gracefully on any error
+context = safe_create_context()
+
+# If we reach here, context creation succeeded
+assert isinstance(context, PreToolUseContext)
+
+# Your normal hook logic here...
+```
+
+Or use explicit error handling:
+
+```python
+#!/usr/bin/env python3
+from cchooks import create_context, handle_context_error, PreToolUseContext
+
+try:
+    context = create_context()
+except Exception as e:
+    handle_context_error(e)  # Graceful exit with appropriate message
+
+# Normal processing...
 ```
 
 ## Quick API Guide

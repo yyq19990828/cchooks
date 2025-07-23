@@ -94,9 +94,9 @@ if isinstance(context, PreToolUseContext):
     tool_input = context.tool_input
 
     if tool_name == "Write" and "password" in tool_input.get("file_path", ""):
-        context.output.simple_block("Refusing to write to password file")
+        context.output.block("Refusing to write to password file")
     else:
-        context.output.simple_approve()
+        context.output.allow()
 ```
 
 **Properties:**
@@ -152,7 +152,7 @@ from cchooks.contexts import NotificationContext
 if isinstance(context, NotificationContext):
     message = context.message
     log_notification(message)
-    context.output.simple_success("Notification processed")
+    context.output.acknowledge("Notification processed")
 ```
 
 **Properties:**
@@ -164,7 +164,7 @@ if isinstance(context, NotificationContext):
 - `exit_non_block(message: str) -> NoReturn` - Exit 1 (non-blocking error)
 - `exit_block(message: str) -> NoReturn` - Exit 2 (blocking error)
 
-> `simple_error` and `simple_block` behavior of `Notification Hook` and `PreCompact Hook` is actually the same. All of them show `reason` or `message` to the user and Claude will keep going. And `simple_success` will show `message` in transcript (default hidden to the user). For details see [official docs](https://docs.anthropic.com/en/docs/claude-code/hooks#simple%3A-exit-code)
+> `exit_block` and `exit_non_block` behavior of `Notification Hook` and `PreCompact Hook` is actually the same. All of them show `reason` or `message` to the user and Claude will keep going. And `exit_success` will show `message` in transcript (default hidden to the user). For details see [official docs](https://docs.anthropic.com/en/docs/claude-code/hooks#simple%3A-exit-code)
 
 ### `StopContext`
 
@@ -176,10 +176,10 @@ from cchooks.contexts import StopContext
 if isinstance(context, StopContext):
     if context.stop_hook_active:
         # Already handled by stop hook
-        context.output.simple_approve()
+        context.output.allow()
     else:
         # Allow Claude to stop
-        context.output.simple_approve()
+        context.output.allow()
 ```
 
 **Properties:**
@@ -202,7 +202,7 @@ from cchooks.contexts import SubagentStopContext
 
 if isinstance(context, SubagentStopContext):
     # Similar to StopContext but for subagents
-    context.output.simple_approve()
+    context.output.allow()
 ```
 
 **Properties:**
@@ -309,6 +309,77 @@ Raised when JSON parsing fails.
 ### `InvalidHookTypeError`
 
 Raised when an invalid hook type is encountered.
+
+## Standalone Output Utilities
+
+Direct control over output and exit behavior when context objects are not available:
+
+### `exit_success(message: Optional[str] = None, file: TextIO = sys.stdout) -> NoReturn`
+Exit with success (exit code 0).
+
+```python
+from cchooks import exit_success
+
+exit_success("Operation completed successfully")
+```
+
+### `exit_non_block(message: str, exit_code: int = 1, file: TextIO = sys.stderr) -> NoReturn`
+Exit with error (non-blocking).
+
+```python
+from cchooks import exit_non_block
+
+exit_non_block("Configuration error", exit_code=1)
+```
+
+### `exit_block(reason: str, file: TextIO = sys.stderr) -> NoReturn`
+Exit with blocking error (exit code 2).
+
+```python
+from cchooks import exit_block
+
+exit_block("Security violation detected")
+```
+
+### `output_json(data: Dict[str, Any], file: TextIO = sys.stdout) -> None`
+Output JSON data to the specified file.
+
+```python
+from cchooks import output_json
+
+output_json({"status": "success", "message": "Operation completed"})
+```
+
+### Error Handling Utilities
+
+#### `safe_create_context(stdin: TextIO = sys.stdin, error_file: TextIO = sys.stderr) -> Any`
+Safe wrapper around `create_context()` with built-in error handling. Exits gracefully on any error.
+
+```python
+from cchooks import safe_create_context, PreToolUseContext
+
+context = safe_create_context()
+assert isinstance(context, PreToolUseContext)
+# Safe to proceed - any errors would have been handled
+```
+
+#### `handle_context_error(error: Exception, file: TextIO = sys.stderr) -> NoReturn`
+Unified handler for all context creation errors.
+
+```python
+from cchooks import create_context, handle_context_error
+
+try:
+    context = create_context()
+except Exception as e:
+    handle_context_error(e)  # Graceful exit with appropriate message
+```
+
+#### Error-specific Handlers
+
+- `handle_parse_error(error: Exception, file: TextIO = sys.stderr) -> NoReturn`
+- `handle_validation_error(error: Exception, file: TextIO = sys.stderr) -> NoReturn`
+- `handle_invalid_hook_type(error: Exception, file: TextIO = sys.stderr) -> NoReturn`
 
 ## Utility Functions
 
