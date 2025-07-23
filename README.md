@@ -11,6 +11,7 @@ A lightweight Python Toolkit that makes building Claude Code hooks as simple as 
 - **One-liner setup**: `create_context()` handles all the boilerplate
 - **Zero config**: Automatic JSON parsing and validation from stdin
 - **Smart detection**: Automatically figures out which hook you're building
+- **7 hook types**: Support for all Claude Code hook events including the new UserPromptSubmit
 - **Two modes**: Simple exit codes OR advanced JSON control
 - **Type-safe**: Full type hints and IDE autocompletion
 
@@ -131,6 +132,22 @@ assert isinstance(c, SubagentStopContext)
 c.output.allow()  # Let subagents complete
 ```
 
+### UserPromptSubmit (Prompt Filter)
+Filter and enrich user prompts before processing:
+
+```python
+from cchooks import create_context, UserPromptSubmitContext
+
+c = create_context()
+
+assert isinstance(c, UserPromptSubmitContext)
+# Block prompts with sensitive data
+if "password" in c.prompt.lower():
+    c.output.exit_block("Security: Prompt contains sensitive data")
+else:
+    c.output.exit_success()
+```
+
 ### PreCompact (Custom Instructions)
 Add custom compaction rules:
 
@@ -212,6 +229,7 @@ except Exception as e:
 | **Notification** | `c.message` | Handle notifications |
 | **Stop** | `c.stop_hook_active` | Control when Claude stops |
 | **SubagentStop** | `c.stop_hook_active` | Control subagent behavior |
+| **UserPromptSubmit** | `c.prompt` | Filter and enrich prompts |
 | **PreCompact** | `c.trigger`, `c.custom_instructions` | Modify transcript compaction |
 
 ### Simple Mode (Exit Codes)

@@ -70,6 +70,16 @@ class UserPromptSubmitOutput(BaseHookOutput):
         print(json.dumps(output), file=sys.stdout)
         sys.exit(0)
 
+    def halt(self, stop_reason: str, suppress_output: bool = False) -> None:
+        """Stop all processing immediately with JSON response.
+
+        Args:
+            stop_reason (str): Stopping reason shown to the user, not shown to Claude
+            suppress_output (bool): Hide stdout from transcript mode (default: False)
+        """
+        output = self._stop_flow(stop_reason, suppress_output)
+        print(json.dumps(output), file=sys.stdout)
+
     def add_context(self, context: str, suppress_output: bool = False) -> None:
         """Add additional context to the prompt.
 

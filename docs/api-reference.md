@@ -11,9 +11,10 @@ The `cchooks` library provides a complete interface for creating Claude Code hoo
 1. **PreToolUse** - Runs before tool execution, can approve or block tools
 2. **PostToolUse** - Runs after tool execution, can only provide feedback
 3. **Notification** - Processes notifications, no decision control
-4. **Stop** - Controls Claude's stopping behavior
-5. **SubagentStop** - Controls subagent stopping behavior
-6. **PreCompact** - Runs before transcript compaction
+4. **UserPromptSubmit** - Filters and enriches user prompts before processing
+5. **Stop** - Controls Claude's stopping behavior
+6. **SubagentStop** - Controls subagent stopping behavior
+7. **PreCompact** - Runs before transcript compaction
 
 ## Main Entry Points
 
@@ -36,7 +37,7 @@ with open('input.json') as f:
 - `stdin` (TextIO, optional): Input stream to read JSON from. Defaults to `sys.stdin`.
 
 **Returns:**
-- `HookContext`: One of the 6 specialized context types based on `hook_event_name` in input.
+- `HookContext`: One of the 7 specialized context types based on `hook_event_name` in input.
 
 **Raises:**
 - `ParseError`: If JSON is invalid or not an object
@@ -166,6 +167,35 @@ if isinstance(context, NotificationContext):
 
 > `exit_block` and `exit_non_block` behavior of `Notification Hook` and `PreCompact Hook` is actually the same. All of them show `reason` or `message` to the user and Claude will keep going. And `exit_success` will show `message` in transcript (default hidden to the user). For details see [official docs](https://docs.anthropic.com/en/docs/claude-code/hooks#simple%3A-exit-code)
 
+### `UserPromptSubmitContext`
+
+Runs when the user submits a prompt, before Claude processes it. This allows you to add additional context based on the prompt/conversation, validate prompts, or block certain types of prompts.
+
+```python
+from cchooks.contexts import UserPromptSubmitContext
+
+if isinstance(context, UserPromptSubmitContext):
+    prompt = context.prompt
+    
+    # Block prompts with sensitive data
+    if "password" in prompt.lower():
+        context.output.block("Security: Prompt contains sensitive data")
+    else:
+        # Allow prompt to proceed
+        context.output.allow()
+```
+
+**Properties:**
+- `prompt: str` - The user-submitted prompt text
+
+**Output Methods:**
+- `allow(suppress_output: bool = False)` - Allow the prompt to proceed normally
+- `block(reason: str, suppress_output: bool = False)` - Block the prompt from being processed
+- `halt(reason: str, suppress_output: bool = False)` - Stop all processing immediately
+- `exit_success(message: Optional[str] = None) -> NoReturn` - Exit 0 (success)
+- `exit_non_block(message: str) -> NoReturn` - Exit 1 (non-blocking error)
+- `exit_block(reason: str) -> NoReturn` - Exit 2 (blocking error)
+
 ### `StopContext`
 
 Controls Claude's stopping behavior when Claude wants to stop.
@@ -248,7 +278,7 @@ from cchooks.types import HookEventType
 # Possible values:
 HookEventType = Literal[
     "PreToolUse", "PostToolUse", "Notification",
-    "Stop", "SubagentStop", "PreCompact"
+    "UserPromptSubmit", "Stop", "SubagentStop", "PreCompact"
 ]
 ```
 
@@ -267,12 +297,13 @@ ToolName = Literal[
 ### Decision Types
 
 ```python
-from cchooks.types import PreToolUseDecision, PostToolUseDecision, StopDecision
+from cchooks.types import PreToolUseDecision, PostToolUseDecision, StopDecision, UserPromptSubmitDecision
 
 # Possible values:
 PreToolUseDecision = Literal["approve", "block"]
 PostToolUseDecision = Literal["block"]
 StopDecision = Literal["block"]
+UserPromptSubmitDecision = Literal["block"]
 ```
 
 ### Trigger Types
@@ -547,6 +578,7 @@ cchooks/
     ├── pre_tool_use.py
     ├── post_tool_use.py
     ├── notification.py
+    ├── user_prompt_submit.py
     ├── stop.py
     ├── subagent_stop.py
     └── pre_compact.py
@@ -559,6 +591,7 @@ cchooks/
 | PreToolUse | ✅ | approve/block | tool_name, tool_input |
 | PostToolUse | ✅ | block only | tool_name, tool_input, tool_response |
 | Notification | ❌ | none | message |
+| UserPromptSubmit | ✅ | block only | prompt |
 | Stop | ✅ | block only | stop_hook_active |
 | SubagentStop | ✅ | block only | stop_hook_active |
 | PreCompact | ❌ | none | trigger, custom_instructions |
