@@ -20,6 +20,7 @@ Hook Types:
     - PreToolUse: Runs before tool execution, can approve/block
     - PostToolUse: Runs after tool execution, can only block
     - Notification: Processes notifications, no decision control
+    - UserPromptSubmit: Runs before prompt processing, can block
     - Stop: Controls Claude stopping behavior
     - SubagentStop: Controls subagent stopping behavior
     - PreCompact: Runs before transcript compaction
@@ -43,6 +44,8 @@ from .contexts import (
     StopOutput,
     SubagentStopContext,
     SubagentStopOutput,
+    UserPromptSubmitContext,
+    UserPromptSubmitOutput,
 )
 from .exceptions import (
     CCHooksError,
@@ -68,6 +71,7 @@ HookContext = Union[
     PreToolUseContext,
     PostToolUseContext,
     NotificationContext,
+    UserPromptSubmitContext,
     StopContext,
     SubagentStopContext,
     PreCompactContext,
@@ -78,6 +82,7 @@ _HOOK_TYPE_MAP: dict[str, type[HookContext]] = {
     "PreToolUse": PreToolUseContext,
     "PostToolUse": PostToolUseContext,
     "Notification": NotificationContext,
+    "UserPromptSubmit": UserPromptSubmitContext,
     "Stop": StopContext,
     "SubagentStop": SubagentStopContext,
     "PreCompact": PreCompactContext,
@@ -121,6 +126,8 @@ __all__ = [
     "PostToolUseOutput",
     "NotificationContext",
     "NotificationOutput",
+    "UserPromptSubmitContext",
+    "UserPromptSubmitOutput",
     "StopContext",
     "StopOutput",
     "SubagentStopContext",

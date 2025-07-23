@@ -10,6 +10,7 @@ from cchooks.contexts import (
     PreToolUseContext,
     PostToolUseContext,
     NotificationContext,
+    UserPromptSubmitContext,
     StopContext,
     SubagentStopContext,
     PreCompactContext,
@@ -22,6 +23,7 @@ from tests.fixtures.sample_data import (
     SAMPLE_STOP_WITH_HOOK,
     SAMPLE_SUBAGENT_STOP_WITH_HOOK,
     SAMPLE_PRE_COMPACT_MANUAL,
+    SAMPLE_USER_PROMPT_SUBMIT_SIMPLE,
     INVALID_MISSING_HOOK_EVENT,
     INVALID_UNKNOWN_HOOK_EVENT,
 )
@@ -88,6 +90,15 @@ class TestCreateContextValidInput:
             context.custom_instructions
             == SAMPLE_PRE_COMPACT_MANUAL["custom_instructions"]
         )
+
+    def test_create_user_prompt_submit_context(self):
+        """Test creating UserPromptSubmitContext from valid input."""
+        test_input = StringIO(json.dumps(SAMPLE_USER_PROMPT_SUBMIT_SIMPLE))
+        context = create_context(test_input)
+        assert isinstance(context, UserPromptSubmitContext)
+        assert context.hook_event_name == "UserPromptSubmit"
+        assert context.prompt == SAMPLE_USER_PROMPT_SUBMIT_SIMPLE["prompt"]
+        assert context.cwd == SAMPLE_USER_PROMPT_SUBMIT_SIMPLE["cwd"]
 
 
 class TestCreateContextInvalidInput:

@@ -107,6 +107,7 @@ class TestTypeCompleteness:
             "Stop",
             "SubagentStop",
             "PreCompact",
+            "UserPromptSubmit",
         }
         actual_hooks = set(HookEventType.__args__)
         assert expected_hooks == actual_hooks

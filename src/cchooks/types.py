@@ -4,7 +4,13 @@ from typing import Any, Dict, Literal, Union
 
 # Hook event types
 HookEventType = Literal[
-    "PreToolUse", "PostToolUse", "Notification", "Stop", "SubagentStop", "PreCompact"
+    "PreToolUse",
+    "PostToolUse",
+    "Notification",
+    "UserPromptSubmit",
+    "Stop",
+    "SubagentStop",
+    "PreCompact",
 ]
 
 # Tool names
@@ -27,6 +33,7 @@ PreCompactTrigger = Literal["manual", "auto"]
 # JSON output decision types
 PreToolUseDecision = Literal["approve", "block"]
 PostToolUseDecision = Literal["block"]
+UserPromptSubmitDecision = Literal["block"]
 StopDecision = Literal["block"]
 
 # Common fields present in all hook inputs
@@ -36,6 +43,7 @@ CommonInputFields = Dict[str, Any]  # session_id, transcript_path, hook_event_na
 PreToolUseInput = Dict[str, Any]  # + tool_name, tool_input, cwd
 PostToolUseInput = Dict[str, Any]  # + tool_name, tool_input, tool_response, cwd
 NotificationInput = Dict[str, Any]  # + message, cwd
+UserPromptSubmitInput = Dict[str, Any]  # + prompt, cwd
 StopInput = Dict[str, Any]  # + stop_hook_active
 SubagentStopInput = Dict[str, Any]  # + stop_hook_active
 PreCompactInput = Dict[str, Any]  # + trigger, custom_instructions
@@ -45,6 +53,7 @@ HookInput = Union[
     PreToolUseInput,
     PostToolUseInput,
     NotificationInput,
+    UserPromptSubmitInput,
     StopInput,
     SubagentStopInput,
     PreCompactInput,

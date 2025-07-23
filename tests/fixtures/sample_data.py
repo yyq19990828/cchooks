@@ -1,7 +1,5 @@
 """Sample test data for cchooks testing."""
 
-from typing import Any, Dict
-
 # Realistic Claude Code hook input examples
 
 SAMPLE_PRE_TOOL_USE_WRITE = {
@@ -122,6 +120,30 @@ SAMPLE_PRE_COMPACT_AUTO = {
     "custom_instructions": "",
 }
 
+SAMPLE_USER_PROMPT_SUBMIT_SIMPLE = {
+    "hook_event_name": "UserPromptSubmit",
+    "session_id": "sess_abc123def456",
+    "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
+    "cwd": "/Users/user/project",
+    "prompt": "Please help me write a Python function",
+}
+
+SAMPLE_USER_PROMPT_SUBMIT_COMPLEX = {
+    "hook_event_name": "UserPromptSubmit",
+    "session_id": "sess_abc123def456",
+    "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
+    "cwd": "/Users/user/project",
+    "prompt": "How do I implement authentication in Express.js with JWT tokens?",
+}
+
+SAMPLE_USER_PROMPT_SUBMIT_SENSITIVE = {
+    "hook_event_name": "UserPromptSubmit",
+    "session_id": "sess_abc123def456",
+    "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
+    "cwd": "/Users/user/project",
+    "prompt": "My password is secret123 and API key is sk-1234567890abcdef",
+}
+
 # Invalid data for testing error handling
 INVALID_MISSING_HOOK_EVENT = {
     "session_id": "sess_abc123def456",
@@ -148,6 +170,20 @@ INVALID_PRE_TOOL_USE_MISSING_TOOL_INPUT = {
     "tool_name": "Write",
 }
 
+INVALID_USER_PROMPT_SUBMIT_MISSING_PROMPT = {
+    "hook_event_name": "UserPromptSubmit",
+    "session_id": "sess_abc123def456",
+    "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
+    "cwd": "/Users/user/project",
+}
+
+INVALID_USER_PROMPT_SUBMIT_MISSING_CWD = {
+    "hook_event_name": "UserPromptSubmit",
+    "session_id": "sess_abc123def456",
+    "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
+    "prompt": "Test prompt",
+}
+
 
 def get_all_valid_samples():
     """Return all valid sample data for parameterized testing."""
@@ -156,6 +192,8 @@ def get_all_valid_samples():
         ("PreToolUse", SAMPLE_PRE_TOOL_USE_BASH),
         ("PostToolUse", SAMPLE_POST_TOOL_USE_SUCCESS),
         ("Notification", SAMPLE_NOTIFICATION_WARNING),
+        ("UserPromptSubmit", SAMPLE_USER_PROMPT_SUBMIT_SIMPLE),
+        ("UserPromptSubmit", SAMPLE_USER_PROMPT_SUBMIT_COMPLEX),
         ("Stop", SAMPLE_STOP_WITH_HOOK),
         ("SubagentStop", SAMPLE_SUBAGENT_STOP_WITH_HOOK),
         ("PreCompact", SAMPLE_PRE_COMPACT_MANUAL),

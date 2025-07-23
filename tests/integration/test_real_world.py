@@ -9,6 +9,7 @@ from cchooks.contexts import (
     PreToolUseContext,
     PostToolUseContext,
     NotificationContext,
+    UserPromptSubmitContext,
     StopContext,
     SubagentStopContext,
     PreCompactContext,
@@ -222,9 +223,7 @@ class TestRealWorldConversationManagement:
 
         # Allow subagent to stop
         with patch("sys.exit") as mock_exit:
-            context.output.exit_success(
-                "Code analysis subagent completed successfully"
-            )
+            context.output.exit_success("Code analysis subagent completed successfully")
             mock_exit.assert_called_once_with(0)
 
     def test_transcript_compaction_workflow(self):
@@ -318,6 +317,8 @@ class TestRealWorldIntegrationScenarios:
                 assert isinstance(context, PostToolUseContext)
             elif expected_type == "Notification":
                 assert isinstance(context, NotificationContext)
+            elif expected_type == "UserPromptSubmit":
+                assert isinstance(context, UserPromptSubmitContext)
 
     def test_security_audit_workflow(self):
         """Test security audit workflow."""
@@ -383,41 +384,47 @@ class TestRealWorldIntegrationScenarios:
     def test_development_cycle_workflow(self):
         """Test complete development cycle workflow."""
         dev_cycle = [
-            # 1. Write code
+            # 1. User submits prompt
+            {
+                "hook": "UserPromptSubmit",
+                "prompt": "Please help me write a Python function to calculate fibonacci numbers",
+                "expected": "allow",
+            },
+            # 2. Write code
             {
                 "hook": "PreToolUse",
                 "tool": "Write",
                 "input": {
                     "file_path": "/project/src/main.py",
-                    "content": "def main(): pass",
+                    "content": "def fibonacci(n):\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)",
                 },
                 "expected": "approve",
             },
-            # 2. Auto-format Python file
+            # 3. Auto-format Python file
             {
                 "hook": "PostToolUse",
                 "tool": "Write",
                 "input": {
                     "file_path": "/project/src/main.py",
-                    "content": "def main(): pass",
+                    "content": "def fibonacci(n):\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)",
                 },
                 "response": {"success": True, "content": "File written"},
                 "expected": "continue",
             },
-            # 3. Run tests
+            # 4. Run tests
             {
                 "hook": "PreToolUse",
                 "tool": "Bash",
                 "input": {"command": "pytest tests/", "description": "Run test suite"},
                 "expected": "approve",
             },
-            # 4. Test results notification
+            # 5. Test results notification
             {
                 "hook": "Notification",
                 "message": "Test suite passed: 15/15 tests successful",
                 "expected": "process",
             },
-            # 5. Stop conversation
+            # 6. Stop conversation
             {"hook": "Stop", "stop_hook_active": True, "expected": "allow"},
         ]
 
@@ -449,6 +456,14 @@ class TestRealWorldIntegrationScenarios:
                     "cwd": "/home/user/project",
                     "message": step["message"],
                 }
+            elif step["hook"] == "UserPromptSubmit":
+                data = {
+                    "hook_event_name": "UserPromptSubmit",
+                    "session_id": "dev-cycle",
+                    "transcript_path": "/tmp/transcript.json",
+                    "cwd": "/home/user/project",
+                    "prompt": step["prompt"],
+                }
             else:
                 data = {
                     "hook_event_name": "Stop",
@@ -464,4 +479,3 @@ class TestRealWorldIntegrationScenarios:
             # Basic validation that context was created
             assert context is not None
             assert hasattr(context, "hook_event_name")
-
