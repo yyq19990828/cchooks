@@ -17,5 +17,8 @@ jobs:
       - name: Install uv
         run: make install-uv
 
+      - name: Run release check and build
+        run: make release-check
+
       - name: Upload Python Package
         run: uv publish --token ${{ secrets.PYPI_TOKEN }}
