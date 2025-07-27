@@ -6,9 +6,7 @@ from cchooks.types import (
     HookEventType,
 #   ToolName,
     PreCompactTrigger,
-    PreToolUseDecision,
-    PostToolUseDecision,
-    StopDecision,
+    PreToolUsePermissionDecision,
 )
 
 
@@ -58,9 +56,7 @@ class TestTypeLiterals:
 
     def test_decision_type_values(self):
         """Test all valid decision type values."""
-        assert PreToolUseDecision.__args__ == ("approve", "block")
-        assert PostToolUseDecision.__args__ == ("block",)
-        assert StopDecision.__args__ == ("block",)
+        assert PreToolUsePermissionDecision.__args__ == ("allow", "deny", "ask")
 
 
 class TestTypeValidation:
@@ -88,11 +84,11 @@ class TestTypeValidation:
         assert invalid_trigger not in PreCompactTrigger.__args__
 
     @pytest.mark.parametrize(
-        "invalid_decision", ["approve_block", "", "APPROVE", "deny"]
+        "invalid_decision", ["approve", "block", "", "ALLOW", "yes"]
     )
     def test_invalid_pre_tool_use_decision(self, invalid_decision):
         """Test that invalid PreToolUse decisions are rejected."""
-        assert invalid_decision not in PreToolUseDecision.__args__
+        assert invalid_decision not in PreToolUsePermissionDecision.__args__
 
 
 class TestTypeCompleteness:

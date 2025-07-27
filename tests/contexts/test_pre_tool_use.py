@@ -191,8 +191,8 @@ class TestPreToolUseOutput:
             context.output.exit_block("Blocking write to system file")
             mock_exit.assert_called_once_with(2)
 
-    def test_approve(self):
-        """Test approve method."""
+    def test_allow(self):
+        """Test allow method."""
         data = {
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
@@ -205,17 +205,18 @@ class TestPreToolUseOutput:
         context = PreToolUseContext(data)
 
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.approve("Safe read operation approved")
+            context.output.allow("Safe read operation approved")
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
 
             assert result["continue"] is True
-            assert result["decision"] == "approve"
-            assert result["reason"] == "Safe read operation approved"
+            assert result["hookSpecificOutput"]["hookEventName"] == "PreToolUse"
+            assert result["hookSpecificOutput"]["permissionDecision"] == "allow"
+            assert result["hookSpecificOutput"]["permissionDecisionReason"] == "Safe read operation approved"
 
-    def test_block(self):
-        """Test block method."""
+    def test_deny(self):
+        """Test deny method."""
         data = {
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
@@ -228,14 +229,15 @@ class TestPreToolUseOutput:
         context = PreToolUseContext(data)
 
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.block("Potentially dangerous command blocked")
+            context.output.deny("Potentially dangerous command blocked")
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
 
             assert result["continue"] is True
-            assert result["decision"] == "block"
-            assert result["reason"] == "Potentially dangerous command blocked"
+            assert result["hookSpecificOutput"]["hookEventName"] == "PreToolUse"
+            assert result["hookSpecificOutput"]["permissionDecision"] == "deny"
+            assert result["hookSpecificOutput"]["permissionDecisionReason"] == "Potentially dangerous command blocked"
 
     def test_halt(self):
         """Test halt method."""
@@ -259,8 +261,8 @@ class TestPreToolUseOutput:
             assert result["continue"] is False
             assert result["stopReason"] == "Security violation detected"
 
-    def test_defer(self):
-        """Test defer method."""
+    def test_ask(self):
+        """Test ask method."""
         data = {
             "session_id": "test-123",
             "transcript_path": "/tmp/transcript.json",
@@ -273,15 +275,15 @@ class TestPreToolUseOutput:
         context = PreToolUseContext(data)
 
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.defer()
+            context.output.ask("Please confirm this read operation")
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
 
             assert result["continue"] is True
-            assert (
-                "decision" not in result
-            )  # Should not include decision for defer
+            assert result["hookSpecificOutput"]["hookEventName"] == "PreToolUse"
+            assert result["hookSpecificOutput"]["permissionDecision"] == "ask"
+            assert result["hookSpecificOutput"]["permissionDecisionReason"] == "Please confirm this read operation"
 
 
 class TestPreToolUseRealWorldScenarios:
@@ -304,11 +306,12 @@ class TestPreToolUseRealWorldScenarios:
             context = PreToolUseContext(data)
 
             # Test blocking decision
-            with patch("sys.exit") as mock_exit:
-                context.output.exit_block(
-                    f"Blocking write to sensitive file: {file_path}"
-                )
-                mock_exit.assert_called_with(2)
+            with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+                context.output.deny(f"Blocking write to sensitive file: {file_path}")
+                
+                output = mock_stdout.getvalue().strip()
+                result = json.loads(output)
+                assert result["hookSpecificOutput"]["permissionDecision"] == "deny"
 
     def test_approve_safe_operations(self):
         """Test approving safe operations."""
@@ -333,9 +336,12 @@ class TestPreToolUseRealWorldScenarios:
             context = PreToolUseContext(data)
 
             # Test approval
-            with patch("sys.exit") as mock_exit:
-                context.output.exit_success("Safe operation approved")
-                mock_exit.assert_called_with(0)
+            with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+                context.output.allow("Safe operation approved")
+                
+                output = mock_stdout.getvalue().strip()
+                result = json.loads(output)
+                assert result["hookSpecificOutput"]["permissionDecision"] == "allow"
 
     def test_conditional_approval_based_on_content(self):
         """Test conditional approval based on file content patterns."""
@@ -360,10 +366,10 @@ class TestPreToolUseRealWorldScenarios:
 
             # Test blocking dangerous commands
             with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-                context.output.block("Dangerous command detected")
+                context.output.deny("Dangerous command detected")
 
                 output = mock_stdout.getvalue().strip()
                 result = json.loads(output)
                 assert result["continue"] is True
-                assert result["decision"] == "block"
-                assert "Dangerous command detected" in result["reason"]
+                assert result["hookSpecificOutput"]["permissionDecision"] == "deny"
+                assert "Dangerous command detected" in result["hookSpecificOutput"]["permissionDecisionReason"]

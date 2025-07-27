@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, NoReturn, Optional, TextIO
 
 from ..exceptions import ParseError
-from ..types import BaseOutput, HookEventType
+from ..types import CompleteOutput, HookEventType, CommonOutput
 
 
 class BaseHookContext(ABC):
@@ -68,7 +68,7 @@ class BaseHookOutput(ABC):
         # self.base_json = base_json
         pass
 
-    def _continue_flow(self, suppress_output: bool = False) -> BaseOutput:
+    def _continue_flow(self, suppress_output: bool = False) -> CommonOutput:
         """Construct Json with continue is true"""
         return {
             "continue": True,
@@ -76,13 +76,25 @@ class BaseHookOutput(ABC):
             "suppressOutput": suppress_output,
         }
 
-    def _stop_flow(self, stop_reason: str, suppress_output: bool = False) -> BaseOutput:
+    def _stop_flow(
+        self, stop_reason: str, suppress_output: bool = False
+    ) -> CommonOutput:
         """Construct Json with continue is false"""
         return {
             "continue": False,
             "stopReason": stop_reason,
             "suppressOutput": suppress_output,
         }
+
+    def _with_specific_output(
+        self, common_output: CommonOutput, hook_event_name: str, **specific_fields: Any
+    ) -> CompleteOutput:
+        """Add hook-specific output to base JSON structure."""
+        common_output["hookSpecificOutput"] = {
+            "hookEventName": hook_event_name,
+            **specific_fields,
+        }
+        return common_output
 
     def _success(self, message: Optional[str] = None) -> NoReturn:
         """Exit with success (exit code 0)."""

@@ -48,16 +48,17 @@ class UserPromptSubmitOutput(BaseHookOutput):
     """Output handler for UserPromptSubmit hooks."""
 
     def allow(self, suppress_output: bool = False) -> None:
-        """Allow the prompt to be processed.
+        """Allow the prompt to be processed using unified SpecificOutput format.
 
         Args:
             suppress_output (bool): Hide stdout from transcript mode (default: False)
         """
         output = self._continue_flow(suppress_output)
+        output = self._with_specific_output(output, "UserPromptSubmit")
         print(json.dumps(output), file=sys.stdout)
 
     def block(self, reason: str, suppress_output: bool = False) -> NoReturn:
-        """Block the prompt from being processed.
+        """Block the prompt from being processed using unified SpecificOutput format.
 
         The submitted prompt is erased from context and the reason is shown to the user.
 
@@ -67,28 +68,33 @@ class UserPromptSubmitOutput(BaseHookOutput):
         """
         output = self._continue_flow(suppress_output)
         output.update({"decision": "block", "reason": reason})
+        output = self._with_specific_output(output, "UserPromptSubmit")
         print(json.dumps(output), file=sys.stdout)
         sys.exit(0)
 
     def halt(self, stop_reason: str, suppress_output: bool = False) -> None:
-        """Stop all processing immediately with JSON response.
+        """Stop all processing immediately with JSON response using unified SpecificOutput format.
 
         Args:
             stop_reason (str): Stopping reason shown to the user, not shown to Claude
             suppress_output (bool): Hide stdout from transcript mode (default: False)
         """
         output = self._stop_flow(stop_reason, suppress_output)
+        output = self._with_specific_output(output, "UserPromptSubmit")
         print(json.dumps(output), file=sys.stdout)
 
     def add_context(self, context: str, suppress_output: bool = False) -> None:
-        """Add additional context to the prompt.
+        """Add additional context to the prompt using unified SpecificOutput.additionalContext.
 
         Args:
-            context (str): Additional context to prepend to the prompt
+            context (str): Additional context to prepend to the prompt using hookSpecificOutput
             suppress_output (bool): Hide stdout from transcript mode (default: False)
         """
-        if not suppress_output:
-            print(context, file=sys.stdout)
+        output = self._continue_flow(suppress_output)
+        output = self._with_specific_output(
+            output, "UserPromptSubmit", additionalContext=context
+        )
+        print(json.dumps(output), file=sys.stdout)
 
     def exit_success(self, message: Optional[str] = None) -> NoReturn:
         """Exit with success (exit code 0).

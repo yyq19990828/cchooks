@@ -93,12 +93,12 @@ class TestRealWorldSecurityScenarios:
             assert isinstance(context, PreToolUseContext)
 
             with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-                context.output.block(f"Dangerous command detected: {command}")
+                context.output.deny(f"Dangerous command detected: {command}")
 
                 output = mock_stdout.getvalue().strip()
                 result = json.loads(output)
                 assert result["continue"] is True
-                assert "Dangerous command" in result["reason"]
+                assert "Dangerous command" in result["hookSpecificOutput"]["permissionDecisionReason"]
 
 
 class TestRealWorldDevelopmentWorkflows:

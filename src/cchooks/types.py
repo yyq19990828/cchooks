@@ -1,6 +1,6 @@
 """Type definitions for Claude Code hooks."""
 
-from typing import Any, Dict, Literal, Union
+from typing import Any, Dict, Literal, Union, Optional
 
 # Hook event types
 HookEventType = Literal[
@@ -13,28 +13,11 @@ HookEventType = Literal[
     "PreCompact",
 ]
 
-# Tool names
-# ToolName = Literal[
-#     "Task",
-#     "Bash",
-#     "Glob",
-#     "Grep",
-#     "Read",
-#     "Edit",
-#     "MultiEdit",
-#     "Write",
-#     "WebFetch",
-#     "WebSearch",
-# ]
-
 # Trigger types for PreCompact
 PreCompactTrigger = Literal["manual", "auto"]
 
-# JSON output decision types
-PreToolUseDecision = Literal["approve", "block"]
-PostToolUseDecision = Literal["block"]
-UserPromptSubmitDecision = Literal["block"]
-StopDecision = Literal["block"]
+# Permission decision types for PreToolUse
+PreToolUsePermissionDecision = Literal["allow", "deny", "ask"]
 
 # Common fields present in all hook inputs
 CommonInputFields = Dict[str, Any]  # session_id, transcript_path, hook_event_name
@@ -59,8 +42,55 @@ HookInput = Union[
     PreCompactInput,
 ]
 
+
+# Hook-specific output types
+class HookSpecificOutput(Dict[str, Any]):
+    """Base class for hook-specific output."""
+
+    pass
+
+
+class PreToolUseHookSpecificOutput(HookSpecificOutput):
+    """Hook-specific output for PreToolUse."""
+
+    hookEventName: Literal["PreToolUse"]
+    permissionDecision: PreToolUsePermissionDecision
+    permissionDecisionReason: str
+
+
+class UserPromptSubmitHookSpecificOutput(HookSpecificOutput):
+    """Hook-specific output for UserPromptSubmit."""
+
+    hookEventName: Literal["UserPromptSubmit"]
+    additionalContext: Optional[str] = None
+
+
+class PostToolUseHookSpecificOutput(HookSpecificOutput):
+    """Hook-specific output for PostToolUse."""
+
+    hookEventName: Literal["PostToolUse"]
+
+
+class StopHookSpecificOutput(HookSpecificOutput):
+    """Hook-specific output for Stop."""
+
+    hookEventName: Literal["Stop"]
+
+
+class SubagentStopHookSpecificOutput(HookSpecificOutput):
+    """Hook-specific output for SubagentStop."""
+
+    hookEventName: Literal["SubagentStop"]
+
+
+class PreCompactHookSpecificOutput(HookSpecificOutput):
+    """Hook-specific output for PreCompact."""
+
+    hookEventName: Literal["PreCompact"]
+
+
 # JSON output types
-BaseOutput = Dict[str, bool | str]
-PreToolUseOutput = Dict[str, bool | str]  # + decision, reason
-PostToolUseOutput = Dict[str, bool | str]  # + decision, reason
-StopOutput = Dict[str, bool | str]  # + decision, reason
+CompleteOutput = Dict[str, Any]
+CommonOutput = Dict[
+    str, Any
+]  # continue, stopReason, suppressOutput, hookSpecificOutput

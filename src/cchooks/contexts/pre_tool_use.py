@@ -6,7 +6,6 @@ from typing import Any, Dict, NoReturn, Optional
 
 from .base import BaseHookContext, BaseHookOutput
 from ..exceptions import HookValidationError
-# from ..types import ToolName
 
 
 class PreToolUseContext(BaseHookContext):
@@ -56,35 +55,52 @@ class PreToolUseContext(BaseHookContext):
 class PreToolUseOutput(BaseHookOutput):
     """Output handler for PreToolUse hooks."""
 
-    def approve(self, reason: str = "", suppress_output: bool = False) -> None:
-        """Approve the tool execution.
+    def allow(self, reason: str = "", suppress_output: bool = False) -> None:
+        """Allow the tool execution using unified SpecificOutput format.
 
         Args:
-            reason (str): Reason for approval, shown to user
+            reason (str): Reason for allowing, shown to user
             suppress_output (bool): Hide stdout from transcript mode (default: False)
         """
         output = self._continue_flow(suppress_output)
-        output.update({"decision": "approve", "reason": reason})
+        output = self._with_specific_output(
+            output,
+            "PreToolUse",
+            permissionDecision="allow",
+            permissionDecisionReason=reason,
+        )
         print(json.dumps(output), file=sys.stdout)
 
-    def block(self, reason: str, suppress_output: bool = False) -> None:
-        """Block the tool execution.
+    def deny(self, reason: str, suppress_output: bool = False) -> None:
+        """Deny the tool execution using unified SpecificOutput format.
 
         Args:
-            reason (str): Reason for blocking, shown to Claude for further reasoning
+            reason (str): Reason for denying, shown to Claude for further reasoning
             suppress_output (bool): Hide stdout from transcript mode (default: False)
         """
         output = self._continue_flow(suppress_output)
-        output.update({"decision": "block", "reason": reason})
+        output = self._with_specific_output(
+            output,
+            "PreToolUse",
+            permissionDecision="deny",
+            permissionDecisionReason=reason,
+        )
         print(json.dumps(output), file=sys.stdout)
 
-    def defer(self, suppress_output: bool = False) -> None:
-        """Defer to Claude's permission system.
+    def ask(self, reason: str, suppress_output: bool = False) -> None:
+        """Ask user to confirm the tool call using unified SpecificOutput format.
 
         Args:
+            reason (str): Reason for asking, shown to user
             suppress_output (bool): Hide stdout from transcript mode (default: False)
         """
         output = self._continue_flow(suppress_output)
+        output = self._with_specific_output(
+            output,
+            "PreToolUse",
+            permissionDecision="ask",
+            permissionDecisionReason=reason,
+        )
         print(json.dumps(output), file=sys.stdout)
 
     def halt(self, reason: str, suppress_output: bool = False) -> None:
@@ -95,7 +111,6 @@ class PreToolUseOutput(BaseHookOutput):
             suppress_output (bool): Hide stdout from transcript mode (default: False)
         """
         output = self._stop_flow(reason, suppress_output)
-        output.update({"decision": "block", "reason": ""})
         print(json.dumps(output), file=sys.stdout)
 
     def exit_success(self, message: Optional[str] = None) -> NoReturn:
