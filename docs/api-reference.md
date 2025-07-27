@@ -34,12 +34,15 @@ with open('input.json') as f:
 ```
 
 **Parameters:**
+
 - `stdin` (TextIO, optional): Input stream to read JSON from. Defaults to `sys.stdin`.
 
 **Returns:**
+
 - `HookContext`: One of the 7 specialized context types based on `hook_event_name` in input.
 
 **Raises:**
+
 - `ParseError`: If JSON is invalid or not an object
 - `InvalidHookTypeError`: If `hook_event_name` is not recognized
 - `HookValidationError`: If required fields are missing
@@ -60,12 +63,14 @@ class MyCustomContext(BaseHookContext):
 ```
 
 **Properties:**
+
 - `session_id: str` - Unique session identifier
 - `transcript_path: str` - Path to transcript file
 - `hook_event_name: str` - Type of hook event
 - `output: BaseHookOutput` - Output handler for this context type
 
 **Methods:**
+
 - `from_stdin(stdin: TextIO = sys.stdin) -> BaseHookContext` - Create context from stdin JSON
 
 ### `BaseHookOutput`
@@ -73,8 +78,10 @@ class MyCustomContext(BaseHookContext):
 Abstract base class for all hook outputs. Provides common output methods and utilities.
 
 **Methods:**
+
 - `_continue_flow(suppress_output: bool = False) -> dict` - JSON response to continue processing
 - `_stop_flow(stop_reason: str, suppress_output: bool = False) -> dict` - JSON response to stop processing
+- `_with_specific_output(common_output: CommonOutput, hook_event_name: str, **specific_fields: Any)` - Add hook-specific outpout to common JSON structure
 - `_success(message: Optional[str] = None) -> NoReturn` - Exit with success (code 0)
 - `_error(message: str, exit_code: int = 1) -> NoReturn` - Exit with non-blocking error (code 1)
 - `_block(reason: str) -> NoReturn` - Exit with blocking error (code 2)
@@ -95,19 +102,21 @@ if isinstance(context, PreToolUseContext):
     tool_input = context.tool_input
 
     if tool_name == "Write" and "password" in tool_input.get("file_path", ""):
-        context.output.block("Refusing to write to password file")
+        context.output.deny("Refusing to write to password file")
     else:
         context.output.allow()
 ```
 
 **Properties:**
+
 - `tool_name: ToolName` - Name of the tool being executed
 - `tool_input: Dict[str, Any]` - Parameters being passed to the tool
 
 **Output Methods:**
-- `approve(reason: str = "", suppress_output: bool = False)` - Approve tool execution
-- `block(reason: str, suppress_output: bool = False)` - Block tool execution
-- `defer(suppress_output: bool = False)` - Defer to Claude's permission system
+
+- `allow(reason: str = "", suppress_output: bool = False)` - Allow tool execution, show user the reason for allowing
+- `deny(reason: str, suppress_output: bool = False)` - Deny tool execution, prompt Claude with the reason for denying
+- `ask(suppress_output: bool = False)` - Ask user for permission
 - `halt(reason: str, suppress_output: bool = False)` - Stop all processing immediately
 - `exit_success(message: Optional[str] = None) -> NoReturn` - Exit 0 (success)
 - `exit_non_block(message: str) -> NoReturn` - Exit 1 (non-blocking error)
@@ -130,11 +139,13 @@ if isinstance(context, PostToolUseContext):
 ```
 
 **Properties:**
+
 - `tool_name: ToolName` - Name of the executed tool
 - `tool_input: Dict[str, Any]` - Parameters that were passed to the tool
 - `tool_response: Dict[str, Any]` - Response data from the tool execution
 
 **Output Methods:**
+
 - `accept(suppress_output: bool = False)` - Accept tool results
 - `challenge(reason: str, suppress_output: bool = False)` - Challenge tool results
 - `ignore(suppress_output: bool = False)` - Ignore tool results
@@ -157,9 +168,11 @@ if isinstance(context, NotificationContext):
 ```
 
 **Properties:**
+
 - `message: str` - Notification message content
 
 **Output Methods:**
+
 - `acknowledge(message: Optional[str]) -> NoReturn` - Acknowledge and process information
 - `exit_success(message: Optional[str]) -> NoReturn` - Exit 0 (success)
 - `exit_non_block(message: str) -> NoReturn` - Exit 1 (non-blocking error)
@@ -176,7 +189,7 @@ from cchooks.contexts import UserPromptSubmitContext
 
 if isinstance(context, UserPromptSubmitContext):
     prompt = context.prompt
-    
+
     # Block prompts with sensitive data
     if "password" in prompt.lower():
         context.output.block("Security: Prompt contains sensitive data")
@@ -186,11 +199,14 @@ if isinstance(context, UserPromptSubmitContext):
 ```
 
 **Properties:**
+
 - `prompt: str` - The user-submitted prompt text
 
 **Output Methods:**
+
 - `allow(suppress_output: bool = False)` - Allow the prompt to proceed normally
-- `block(reason: str, suppress_output: bool = False)` - Block the prompt from being processed
+- `block(reason: str, suppress_output: bool = False)` - Deny the prompt from being processed
+- `add_context(reason: str, context: str, suppress_output: bool = False)` - Add additional context to the prompt.
 - `halt(reason: str, suppress_output: bool = False)` - Stop all processing immediately
 - `exit_success(message: Optional[str] = None) -> NoReturn` - Exit 0 (success)
 - `exit_non_block(message: str) -> NoReturn` - Exit 1 (non-blocking error)
@@ -213,9 +229,11 @@ if isinstance(context, StopContext):
 ```
 
 **Properties:**
+
 - `stop_hook_active: bool` - Whether stop hook is already active
 
 **Output Methods:**
+
 - `allow(suppress_output: bool = False)` - Allow Claude to stop
 - `prevent(reason: str, suppress_output: bool = False)` - Prevent Claude from stopping
 - `halt(reason: str, suppress_output: bool = False)` - Stop all processing immediately
@@ -236,6 +254,7 @@ if isinstance(context, SubagentStopContext):
 ```
 
 **Properties:**
+
 - `stop_hook_active: bool` - Whether stop hook is already active
 
 **Output Methods:**
@@ -259,10 +278,12 @@ if isinstance(context, PreCompactContext):
 ```
 
 **Properties:**
+
 - `trigger: PreCompactTrigger` - Type of compaction trigger (`"manual"` or `"auto"`)
 - `custom_instructions: str` - Custom instructions provided by user
 
 **Output Methods:**
+
 - `acknowledge(message: Optional[str]) -> NoReturn` - Acknowledge the compaction
 - `exit_success(message: Optional[str]) -> NoReturn` - Exit 0 (success)
 - `exit_non_block(message: str) -> NoReturn` - Exit 1 (non-blocking error)
@@ -300,7 +321,7 @@ ToolName = Literal[
 from cchooks.types import PreToolUseDecision, PostToolUseDecision, StopDecision, UserPromptSubmitDecision
 
 # Possible values:
-PreToolUseDecision = Literal["approve", "block"]
+PreToolUseDecision = Literal["allow", "deny", "ask"]
 PostToolUseDecision = Literal["block"]
 StopDecision = Literal["block"]
 UserPromptSubmitDecision = Literal["block"]
@@ -346,6 +367,7 @@ Raised when an invalid hook type is encountered.
 Direct control over output and exit behavior when context objects are not available:
 
 ### `exit_success(message: Optional[str] = None, file: TextIO = sys.stdout) -> NoReturn`
+
 Exit with success (exit code 0).
 
 ```python
@@ -355,6 +377,7 @@ exit_success("Operation completed successfully")
 ```
 
 ### `exit_non_block(message: str, exit_code: int = 1, file: TextIO = sys.stderr) -> NoReturn`
+
 Exit with error (non-blocking).
 
 ```python
@@ -364,6 +387,7 @@ exit_non_block("Configuration error", exit_code=1)
 ```
 
 ### `exit_block(reason: str, file: TextIO = sys.stderr) -> NoReturn`
+
 Exit with blocking error (exit code 2).
 
 ```python
@@ -373,6 +397,7 @@ exit_block("Security violation detected")
 ```
 
 ### `output_json(data: Dict[str, Any], file: TextIO = sys.stdout) -> None`
+
 Output JSON data to the specified file.
 
 ```python
@@ -384,6 +409,7 @@ output_json({"status": "success", "message": "Operation completed"})
 ### Error Handling Utilities
 
 #### `safe_create_context(stdin: TextIO = sys.stdin, error_file: TextIO = sys.stderr) -> Any`
+
 Safe wrapper around `create_context()` with built-in error handling. Exits gracefully on any error.
 
 ```python
@@ -395,6 +421,7 @@ assert isinstance(context, PreToolUseContext)
 ```
 
 #### `handle_context_error(error: Exception, file: TextIO = sys.stderr) -> NoReturn`
+
 Unified handler for all context creation errors.
 
 ```python
@@ -586,12 +613,12 @@ cchooks/
 
 ## Quick Reference
 
-| Hook Type | Can Block? | Decision Control | Key Properties |
-|-----------|------------|------------------|----------------|
-| PreToolUse | ✅ | approve/block | tool_name, tool_input |
-| PostToolUse | ✅ | block only | tool_name, tool_input, tool_response |
-| Notification | ❌ | none | message |
-| UserPromptSubmit | ✅ | block only | prompt |
-| Stop | ✅ | block only | stop_hook_active |
-| SubagentStop | ✅ | block only | stop_hook_active |
-| PreCompact | ❌ | none | trigger, custom_instructions |
+| Hook Type        | Can Block? | Decision Control | Key Properties                       |
+| ---------------- | ---------- | ---------------- | ------------------------------------ |
+| PreToolUse       | ✅         | approve/block    | tool_name, tool_input                |
+| PostToolUse      | ✅         | block only       | tool_name, tool_input, tool_response |
+| Notification     | ❌         | none             | message                              |
+| UserPromptSubmit | ✅         | block only       | prompt                               |
+| Stop             | ✅         | block only       | stop_hook_active                     |
+| SubagentStop     | ✅         | block only       | stop_hook_active                     |
+| PreCompact       | ❌         | none             | trigger, custom_instructions         |

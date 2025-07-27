@@ -11,7 +11,7 @@ A lightweight Python Toolkit that makes building Claude Code hooks as simple as 
 - **One-liner setup**: `create_context()` handles all the boilerplate
 - **Zero config**: Automatic JSON parsing and validation from stdin
 - **Smart detection**: Automatically figures out which hook you're building
-- **7 hook types**: Support for all Claude Code hook events including the new UserPromptSubmit
+- **7 hook types**: Support for all Claude Code hook events including UserPromptSubmit
 - **Two modes**: Simple exit codes OR advanced JSON control
 - **Type-safe**: Full type hints and IDE autocompletion
 
@@ -38,7 +38,7 @@ assert isinstance(c, PreToolUseContext)
 
 # Block writes to .env files
 if c.tool_name == "Write" and ".env" in c.tool_input.get("file_path", ""):
-    c.output.exit_block("Nope! .env files are protected")
+    c.output.exit_deny("Nope! .env files are protected")
 else:
     c.output.exit_success()
 ```
@@ -67,7 +67,7 @@ c = create_context()
 assert isinstance(c, PreToolUseContext)
 # Block rm -rf commands
 if c.tool_name == "Bash" and "rm -rf" in c.tool_input.get("command", ""):
-    c.output.exit_block("You should not execute this command: System protection: rm -rf blocked")
+    c.output.exit_deny("You should not execute this command: System protection: rm -rf blocked")
 else:
     c.output.exit_success()
 ```
@@ -120,7 +120,7 @@ else:
     c.output.allow()  # Allow stop
 ```
 
-> Since Hooks are executed in parallel in claude-code, it is necessary to check `stop_hook_active` to determine if claude has already been activated by another parallel Stop Hook.
+> Since hooks are executed in parallel in Claude Code, it is necessary to check `stop_hook_active` to determine if Claude has already been activated by another parallel Stop Hook.
 
 ### SubagentStop (Workflow Control)
 Same as Stop, but for subagents:
@@ -130,6 +130,22 @@ from cchooks import create_context, SubagentStopContext
 c = create_context()
 assert isinstance(c, SubagentStopContext)
 c.output.allow()  # Let subagents complete
+```
+
+### UserPromptSubmit (Prompt Filter)
+Filter and enrich user prompts before processing:
+
+```python
+from cchooks import create_context, UserPromptSubmitContext
+
+c = create_context()
+
+assert isinstance(c, UserPromptSubmitContext)
+# Block prompts with sensitive data
+if "password" in c.prompt.lower():
+    c.output.exit_block("Security: Prompt contains sensitive data")
+else:
+    c.output.exit_success()
 ```
 
 ### UserPromptSubmit (Prompt Filter)
@@ -234,18 +250,18 @@ except Exception as e:
 
 ### Simple Mode (Exit Codes)
 ```python
-# Exit 0 = approve, Exit 1 = non-block, Exit 2 = block
+# Exit 0 = success, Exit 1 = non-block, Exit 2 = deny/block
 c.output.exit_success()  # ✅
 c.output.exit_non_block("reason")  # ❌
-c.output.exit_block("reason")  # ❌
+c.output.exit_deny("reason")  # ❌
 ```
 
 ### Advanced Mode (JSON)
 ```python
 # Precise control over Claude's behavior
-c.output.approve("reason")
-c.output.block("reason")
-c.output.defer()
+c.output.allow("reason")
+c.output.deny("reason")
+c.output.ask()
 ```
 
 ## Production Examples
@@ -275,12 +291,12 @@ if c.tool_name == "Bash":
 elif c.tool_name == "Write":
     file_path = c.tool_input.get("file_path", "")
     if any(sensitive in file_path for sensitive in SENSITIVE_FILES):
-        c.output.exit_block(f"Protected file: {file_path}")
+        c.output.exit_deny(f"Protected file: {file_path}")
     else:
         c.output.exit_success()
 
 else:
-    c.output.defer() # Pattern not matched, just bypass this hook
+    c.output.ask() # Pattern not matched, let Claude decide
 ```
 
 ### Auto-linter Hook
