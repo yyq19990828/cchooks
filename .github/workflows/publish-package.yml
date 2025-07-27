@@ -5,9 +5,6 @@ on:
     types: [published]
 
 jobs:
-  check-and-build:
-    uses: gowaylee/cchooks/.github/workflows/build-check.yml@main
-
   upload-package:
     runs-on: ubuntu-latest
 
@@ -16,6 +13,12 @@ jobs:
 
       - name: Install uv
         run: make install-uv
+
+      - name: Install dependencies
+        run: make setup
+
+      - name: Install dev
+        run: make install-dev
 
       - name: Run release check and build
         run: make release-check
