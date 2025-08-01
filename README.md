@@ -1,4 +1,10 @@
+<div align="center">
+
 # cchooks — Claude Code Hook SDK for Python
+
+</div>
+
+[![Mentioned in Awesome Claude Code](https://awesome.re/mentioned-badge.svg)](https://github.com/hesreallyhim/awesome-claude-code)
 
 A lightweight Python Toolkit that makes building Claude Code hooks as simple as writing a few lines of code. Stop worrying about JSON parsing and focus on what your hook should actually do.
 
