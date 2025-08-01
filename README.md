@@ -1,10 +1,19 @@
 <div align="center">
 
-# cchooks — Claude Code Hook SDK for Python
+<h1>cchooks</h1>
+<h3>Claude Code Hook SDK for Python</h3>
+
+![Static Badge](https://img.shields.io/badge/claude--code-black?style=flat&logo=claude&logoColor=%23D97757&link=https%3A%2F%2Fgithub.com%2Fanthropics%2Fclaude-code)
+[![Mentioned in Awesome Claude Code](https://awesome.re/mentioned-badge.svg)](https://github.com/hesreallyhim/awesome-claude-code)
+![GitHub Repo stars](https://img.shields.io/github/stars/gowaylee/cchooks)
+
+![PyPI - Version](https://img.shields.io/pypi/v/cchooks)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/cchooks)
+![PyPI - License](https://img.shields.io/pypi/l/cchooks)
 
 </div>
 
-[![Mentioned in Awesome Claude Code](https://awesome.re/mentioned-badge.svg)](https://github.com/hesreallyhim/awesome-claude-code)
+---
 
 A lightweight Python Toolkit that makes building Claude Code hooks as simple as writing a few lines of code. Stop worrying about JSON parsing and focus on what your hook should actually do.
 
