@@ -4,7 +4,7 @@ A comprehensive, type-safe Python library for developing Claude Code hooks with 
 
 ## Overview
 
-The `cchooks` library provides a complete interface for creating Claude Code hooks - user-defined shell commands that execute at various points in Claude Code's lifecycle. The library supports 6 distinct hook types with specialized contexts and output handlers.
+The `cchooks` library provides a complete interface for creating Claude Code hooks - user-defined shell commands that execute at various points in Claude Code's lifecycle. The library supports 8 distinct hook types with specialized contexts and output handlers.
 
 ### Hook Types
 
@@ -15,6 +15,7 @@ The `cchooks` library provides a complete interface for creating Claude Code hoo
 5. **Stop** - Controls Claude's stopping behavior
 6. **SubagentStop** - Controls subagent stopping behavior
 7. **PreCompact** - Runs before transcript compaction
+8. **SessionStart** - Runs when Claude Code starts or resumes sessions, can load development context
 
 ## Main Entry Points
 
@@ -39,7 +40,7 @@ with open('input.json') as f:
 
 **Returns:**
 
-- `HookContext`: One of the 7 specialized context types based on `hook_event_name` in input.
+- `HookContext`: One of the 8 specialized context types based on `hook_event_name` in input.
 
 **Raises:**
 
@@ -289,6 +290,37 @@ if isinstance(context, PreCompactContext):
 - `exit_non_block(message: str) -> NoReturn` - Exit 1 (non-blocking error)
 - `exit_block(message: str) -> NoReturn` - Exit 2 (blocking error)
 
+### `SessionStartContext`
+
+Runs when Claude Code starts a new session or resumes an existing session. Useful for loading development context like existing issues or recent changes to your codebase.
+
+```python
+from cchooks.contexts import SessionStartContext
+
+if isinstance(context, SessionStartContext):
+    source = context.source  # "startup", "resume", or "clear"
+
+    if source == "startup":
+        # Load recent changes or project context
+        recent_changes = get_recent_changes()
+        context.output.additional_context(recent_changes)
+    else:
+        context.output.exit_success("Session ready")
+```
+
+**Properties:**
+
+- `source: SessionStartSource` - Session start source (`"startup"`, `"resume"`, or `"clear"`)
+
+**Output Methods:**
+
+- `additional_context(context: str, suppress_output: bool = False)` - Add context to the session via hookSpecificOutput
+- `exit_success(message: Optional[str] = None) -> NoReturn` - Exit 0 (success) - message added to session context
+- `exit_non_block(message: str) -> NoReturn` - Exit 1 (non-blocking error)
+- `exit_block(message: str) -> NoReturn` - Exit 2 (blocking error) - behaves same as exit_non_block for SessionStart
+
+**Note:** Unlike most hooks, SessionStart stdout from exit code 0 is added to the session context rather than shown in transcript mode.
+
 ## Type Definitions
 
 ### Hook Event Types
@@ -299,7 +331,7 @@ from cchooks.types import HookEventType
 # Possible values:
 HookEventType = Literal[
     "PreToolUse", "PostToolUse", "Notification",
-    "UserPromptSubmit", "Stop", "SubagentStop", "PreCompact"
+    "UserPromptSubmit", "Stop", "SubagentStop", "PreCompact", "SessionStart"
 ]
 ```
 
@@ -334,6 +366,15 @@ from cchooks.types import PreCompactTrigger
 
 # Possible values:
 PreCompactTrigger = Literal["manual", "auto"]
+```
+
+### Session Start Source Types
+
+```python
+from cchooks.types import SessionStartSource
+
+# Possible values:
+SessionStartSource = Literal["startup", "resume", "clear"]
 ```
 
 ## Exception Classes
@@ -608,7 +649,8 @@ cchooks/
     ├── user_prompt_submit.py
     ├── stop.py
     ├── subagent_stop.py
-    └── pre_compact.py
+    ├── pre_compact.py
+    └── session_start.py
 ```
 
 ## Quick Reference
@@ -622,3 +664,4 @@ cchooks/
 | Stop             | ✅         | block only       | stop_hook_active                     |
 | SubagentStop     | ✅         | block only       | stop_hook_active                     |
 | PreCompact       | ❌         | none             | trigger, custom_instructions         |
+| SessionStart     | ❌         | none             | source                               |
