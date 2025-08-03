@@ -24,6 +24,7 @@ Hook Types:
     - Stop: Controls Claude stopping behavior
     - SubagentStop: Controls subagent stopping behavior
     - PreCompact: Runs before transcript compaction
+    - SessionStart: Runs when Claude Code starts or resumes sessions
 """
 
 import sys
@@ -40,6 +41,8 @@ from .contexts import (
     PreCompactOutput,
     PreToolUseContext,
     PreToolUseOutput,
+    SessionStartContext,
+    SessionStartOutput,
     StopContext,
     StopOutput,
     SubagentStopContext,
@@ -75,6 +78,7 @@ HookContext = Union[
     StopContext,
     SubagentStopContext,
     PreCompactContext,
+    SessionStartContext,
 ]
 
 # Mapping of hook event names to context classes
@@ -86,6 +90,7 @@ _HOOK_TYPE_MAP: dict[str, type[HookContext]] = {
     "Stop": StopContext,
     "SubagentStop": SubagentStopContext,
     "PreCompact": PreCompactContext,
+    "SessionStart": SessionStartContext,
 }
 
 
@@ -134,6 +139,8 @@ __all__ = [
     "SubagentStopOutput",
     "PreCompactContext",
     "PreCompactOutput",
+    "SessionStartContext",
+    "SessionStartOutput",
     # Factory function
     "create_context",
     # Exceptions

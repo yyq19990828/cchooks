@@ -14,6 +14,7 @@ from cchooks.contexts import (
     StopContext,
     SubagentStopContext,
     PreCompactContext,
+    SessionStartContext,
 )
 from cchooks.exceptions import InvalidHookTypeError, ParseError
 from tests.fixtures.sample_data import (
@@ -24,6 +25,7 @@ from tests.fixtures.sample_data import (
     SAMPLE_SUBAGENT_STOP_WITH_HOOK,
     SAMPLE_PRE_COMPACT_MANUAL,
     SAMPLE_USER_PROMPT_SUBMIT_SIMPLE,
+    SAMPLE_SESSION_START_STARTUP,
     INVALID_MISSING_HOOK_EVENT,
     INVALID_UNKNOWN_HOOK_EVENT,
 )
@@ -99,6 +101,14 @@ class TestCreateContextValidInput:
         assert context.hook_event_name == "UserPromptSubmit"
         assert context.prompt == SAMPLE_USER_PROMPT_SUBMIT_SIMPLE["prompt"]
         assert context.cwd == SAMPLE_USER_PROMPT_SUBMIT_SIMPLE["cwd"]
+
+    def test_create_session_start_context(self):
+        """Test creating SessionStartContext from valid input."""
+        test_input = StringIO(json.dumps(SAMPLE_SESSION_START_STARTUP))
+        context = create_context(test_input)
+        assert isinstance(context, SessionStartContext)
+        assert context.hook_event_name == "SessionStart"
+        assert context.source == SAMPLE_SESSION_START_STARTUP["source"]
 
 
 class TestCreateContextInvalidInput:

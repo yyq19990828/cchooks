@@ -8,6 +8,7 @@ from .user_prompt_submit import UserPromptSubmitContext, UserPromptSubmitOutput
 from .stop import StopContext, StopOutput
 from .subagent_stop import SubagentStopContext, SubagentStopOutput
 from .pre_compact import PreCompactContext, PreCompactOutput
+from .session_start import SessionStartContext, SessionStartOutput
 
 __all__ = [
     "BaseHookContext",
@@ -26,4 +27,6 @@ __all__ = [
     "SubagentStopOutput",
     "PreCompactContext",
     "PreCompactOutput",
+    "SessionStartContext",
+    "SessionStartOutput",
 ]

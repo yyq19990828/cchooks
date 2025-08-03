@@ -13,6 +13,7 @@ from cchooks.contexts import (
     StopContext,
     SubagentStopContext,
     PreCompactContext,
+    SessionStartContext,
 )
 
 
@@ -479,3 +480,269 @@ class TestRealWorldIntegrationScenarios:
             # Basic validation that context was created
             assert context is not None
             assert hasattr(context, "hook_event_name")
+
+
+class TestSessionStartIntegrationScenarios:
+    """Test SessionStart hook integration scenarios."""
+
+    def test_startup_context_loading(self):
+        """Test loading development context on startup."""
+        startup_data = {
+            "hook_event_name": "SessionStart",
+            "session_id": "startup-session-123",
+            "transcript_path": "/tmp/transcript.json",
+            "source": "startup",
+        }
+
+        test_input = StringIO(json.dumps(startup_data))
+        context = create_context(test_input)
+        assert isinstance(context, SessionStartContext)
+        assert context.source == "startup"
+
+        # Load project context
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            project_context = """
+Project: Web Application Framework
+Language: Python 3.12
+Framework: FastAPI
+Database: PostgreSQL
+Recent Changes:
+- Added user authentication endpoints
+- Fixed CORS configuration
+- Updated API documentation
+Open Issues: 5 (3 bugs, 2 features)
+"""
+            context.output.additional_context(project_context)
+
+            output = mock_stdout.getvalue().strip()
+            result = json.loads(output)
+            assert result["continue"] is True
+            assert "Web Application Framework" in result["hookSpecificOutput"]["additionalContext"]
+
+    def test_resume_session_context(self):
+        """Test resuming session with previous context."""
+        resume_data = {
+            "hook_event_name": "SessionStart",
+            "session_id": "resume-session-456",
+            "transcript_path": "/tmp/transcript.json",
+            "source": "resume",
+        }
+
+        test_input = StringIO(json.dumps(resume_data))
+        context = create_context(test_input)
+        assert isinstance(context, SessionStartContext)
+        assert context.source == "resume"
+
+        # Provide resume context
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            resume_context = "Resuming work on OAuth2 implementation. Last task: Testing refresh token flow."
+            context.output.additional_context(resume_context)
+
+            output = mock_stdout.getvalue().strip()
+            result = json.loads(output)
+            assert result["hookSpecificOutput"]["additionalContext"] == resume_context
+
+    def test_clear_session_fresh_start(self):
+        """Test fresh start after session clear."""
+        clear_data = {
+            "hook_event_name": "SessionStart",
+            "session_id": "clear-session-789",
+            "transcript_path": "/tmp/transcript.json",
+            "source": "clear",
+        }
+
+        test_input = StringIO(json.dumps(clear_data))
+        context = create_context(test_input)
+        assert isinstance(context, SessionStartContext)
+        assert context.source == "clear"
+
+        # Provide fresh context
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            fresh_context = "New session started. Current working directory: /home/user/project"
+            context.output.additional_context(fresh_context)
+
+            output = mock_stdout.getvalue().strip()
+            result = json.loads(output)
+            assert result["hookSpecificOutput"]["additionalContext"] == fresh_context
+
+    def test_git_repository_context_loading(self):
+        """Test loading git repository context on startup."""
+        git_context_data = {
+            "hook_event_name": "SessionStart",
+            "session_id": "git-session-101",
+            "transcript_path": "/tmp/transcript.json",
+            "source": "startup",
+        }
+
+        test_input = StringIO(json.dumps(git_context_data))
+        context = create_context(test_input)
+        assert isinstance(context, SessionStartContext)
+
+        # Load git context
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            git_info = """
+Git Repository: my-webapp
+Current Branch: feature/user-auth
+Recent Commits:
+- feat: Add JWT authentication (HEAD)
+- fix: Resolve login validation bug
+- docs: Update API documentation
+- style: Format code with black
+Modified Files: src/auth/, tests/test_auth.py
+Open Pull Requests: 2
+"""
+            context.output.additional_context(git_info)
+
+            output = mock_stdout.getvalue().strip()
+            result = json.loads(output)
+            assert "Git Repository:" in result["hookSpecificOutput"]["additionalContext"]
+            assert "feature/user-auth" in result["hookSpecificOutput"]["additionalContext"]
+
+    def test_development_environment_context(self):
+        """Test loading development environment context."""
+        env_context_data = {
+            "hook_event_name": "SessionStart",
+            "session_id": "env-session-202",
+            "transcript_path": "/tmp/transcript.json",
+            "source": "startup",
+        }
+
+        test_input = StringIO(json.dumps(env_context_data))
+        context = create_context(test_input)
+        assert isinstance(context, SessionStartContext)
+
+        # Load environment context
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            env_info = """
+Development Environment:
+- Python: 3.12.0 (venv active)
+- Node.js: 18.17.0
+- Database: PostgreSQL 14.7 (localhost:5432)
+- Redis: 7.0.5 (localhost:6379)
+- Docker: 24.0.5
+- Testing Framework: pytest with coverage
+- Code Quality: ruff, mypy, black
+"""
+            context.output.additional_context(env_info)
+
+            output = mock_stdout.getvalue().strip()
+            result = json.loads(output)
+            assert "Development Environment:" in result["hookSpecificOutput"]["additionalContext"]
+            assert "Python: 3.12.0" in result["hookSpecificOutput"]["additionalContext"]
+
+    def test_error_handling_session_start(self):
+        """Test error handling in SessionStart hooks."""
+        error_context_data = {
+            "hook_event_name": "SessionStart",
+            "session_id": "error-session-303",
+            "transcript_path": "/tmp/transcript.json",
+            "source": "startup",
+        }
+
+        test_input = StringIO(json.dumps(error_context_data))
+        context = create_context(test_input)
+        assert isinstance(context, SessionStartContext)
+
+        # Test error handling
+        with patch("sys.exit") as mock_exit:
+            context.output.exit_non_block("Failed to load git repository context")
+            mock_exit.assert_called_once_with(1)
+
+    def test_session_start_with_suppressed_output(self):
+        """Test SessionStart with suppressed output for cleaner transcript."""
+        suppressed_data = {
+            "hook_event_name": "SessionStart",
+            "session_id": "suppressed-session-404",
+            "transcript_path": "/tmp/transcript.json",
+            "source": "resume",
+        }
+
+        test_input = StringIO(json.dumps(suppressed_data))
+        context = create_context(test_input)
+        assert isinstance(context, SessionStartContext)
+
+        # Test suppressed output
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            internal_context = "Internal session data loaded successfully"
+            context.output.additional_context(internal_context, suppress_output=True)
+
+            output = mock_stdout.getvalue().strip()
+            result = json.loads(output)
+            assert result["hookSpecificOutput"]["additionalContext"] == internal_context
+
+    def test_complete_session_lifecycle(self):
+        """Test complete session lifecycle with SessionStart."""
+        session_lifecycle = [
+            # 1. Session startup with context loading
+            {
+                "hook": "SessionStart",
+                "source": "startup",
+                "context": "Loading project: E-commerce platform\nTech stack: Python, FastAPI, PostgreSQL",
+                "expected": "load_context",
+            },
+            # 2. User prompt submission
+            {
+                "hook": "UserPromptSubmit",
+                "prompt": "Help me implement user registration",
+                "expected": "allow",
+            },
+            # 3. Tool usage (write code)
+            {
+                "hook": "PreToolUse",
+                "tool": "Write",
+                "input": {
+                    "file_path": "/project/src/auth/registration.py",
+                    "content": "def register_user(email, password):\n    pass",
+                },
+                "expected": "approve",
+            },
+            # 4. Session resume
+            {
+                "hook": "SessionStart",
+                "source": "resume",
+                "context": "Resuming work on user registration. Current task: Implement password validation.",
+                "expected": "load_context",
+            },
+        ]
+
+        for step in session_lifecycle:
+            if step["hook"] == "SessionStart":
+                data = {
+                    "hook_event_name": "SessionStart",
+                    "session_id": "lifecycle-session",
+                    "transcript_path": "/tmp/transcript.json",
+                    "source": step["source"],
+                }
+            elif step["hook"] == "UserPromptSubmit":
+                data = {
+                    "hook_event_name": "UserPromptSubmit",
+                    "session_id": "lifecycle-session",
+                    "transcript_path": "/tmp/transcript.json",
+                    "cwd": "/home/user/project",
+                    "prompt": step["prompt"],
+                }
+            elif step["hook"] == "PreToolUse":
+                data = {
+                    "hook_event_name": "PreToolUse",
+                    "session_id": "lifecycle-session",
+                    "transcript_path": "/tmp/transcript.json",
+                    "cwd": "/home/user/project",
+                    "tool_name": step["tool"],
+                    "tool_input": step["input"],
+                }
+
+            test_input = StringIO(json.dumps(data))
+            context = create_context(test_input)
+
+            # Basic validation
+            assert context is not None
+            assert hasattr(context, "hook_event_name")
+
+            # For SessionStart, test context loading
+            if step["hook"] == "SessionStart" and step["expected"] == "load_context":
+                with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+                    context.output.additional_context(step["context"])
+                    output = mock_stdout.getvalue().strip()
+                    result = json.loads(output)
+                    assert result["continue"] is True
+                    assert result["hookSpecificOutput"]["hookEventName"] == "SessionStart"

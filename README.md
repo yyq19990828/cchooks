@@ -26,7 +26,7 @@ A lightweight Python Toolkit that makes building Claude Code hooks as simple as 
 - **One-liner setup**: `create_context()` handles all the boilerplate
 - **Zero config**: Automatic JSON parsing and validation from stdin
 - **Smart detection**: Automatically figures out which hook you're building
-- **7 hook types**: Support for all Claude Code hook events including UserPromptSubmit
+- **8 hook types**: Support for all Claude Code hook events including SessionStart
 - **Two modes**: Simple exit codes OR advanced JSON control
 - **Type-safe**: Full type hints and IDE autocompletion
 
@@ -169,22 +169,35 @@ else:
     c.output.exit_success()
 ```
 
-### UserPromptSubmit (Prompt Filter)
+### SessionStart (Context Loader)
 
-Filter and enrich user prompts before processing:
+Load development context when Claude Code starts or resumes:
 
 ```python
-from cchooks import create_context, UserPromptSubmitContext
+#!/usr/bin/env python3
+import os
+from cchooks import create_context, SessionStartContext
 
 c = create_context()
 
-assert isinstance(c, UserPromptSubmitContext)
-# Block prompts with sensitive data
-if "password" in c.prompt.lower():
-    c.output.exit_block("Security: Prompt contains sensitive data")
-else:
-    c.output.exit_success()
+assert isinstance(c, SessionStartContext)
+if c.source == "startup":
+    # Load project-specific context
+    project_root = os.getcwd()
+    if os.path.exists(f"{project_root}/.claude-context"):
+        with open(f"{project_root}/.claude-context", "r") as f:
+            context = f.read()
+            print(f"Loaded project context:\n{context}")
+elif c.source == "resume":
+    print("Resuming previous session...")
+elif c.source == "clear":
+    print("Starting fresh session...")
+
+# Always exit with success - output is added to session context
+c.output.exit_success()
 ```
+
+> **Note**: SessionStart hooks cannot block Claude processing. Any stdout output from exit code 0 is automatically added to the session context (not the transcript).
 
 ### PreCompact (Custom Instructions)
 
@@ -270,6 +283,7 @@ except Exception as e:
 | **SubagentStop**     | `c.stop_hook_active`                 | Control subagent behavior    |
 | **UserPromptSubmit** | `c.prompt`                           | Filter and enrich prompts    |
 | **PreCompact**       | `c.trigger`, `c.custom_instructions` | Modify transcript compaction |
+| **SessionStart**     | `c.source`                           | Load development context     |
 
 ### Simple Mode (Exit Codes)
 

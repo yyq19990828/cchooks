@@ -95,7 +95,7 @@ class TestTypeCompleteness:
     """Test that all expected types are defined."""
 
     def test_all_hook_types_present(self):
-        """Test that all 6 hook types are defined."""
+        """Test that all 7 hook types are defined."""
         expected_hooks = {
             "PreToolUse",
             "PostToolUse",
@@ -104,6 +104,7 @@ class TestTypeCompleteness:
             "SubagentStop",
             "PreCompact",
             "UserPromptSubmit",
+            "SessionStart",
         }
         actual_hooks = set(HookEventType.__args__)
         assert expected_hooks == actual_hooks

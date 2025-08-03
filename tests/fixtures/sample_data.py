@@ -184,6 +184,19 @@ INVALID_USER_PROMPT_SUBMIT_MISSING_CWD = {
     "prompt": "Test prompt",
 }
 
+INVALID_SESSION_START_MISSING_SOURCE = {
+    "hook_event_name": "SessionStart",
+    "session_id": "sess_abc123def456",
+    "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
+}
+
+INVALID_SESSION_START_INVALID_SOURCE = {
+    "hook_event_name": "SessionStart",
+    "session_id": "sess_abc123def456",
+    "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
+    "source": "invalid_source",
+}
+
 
 def get_all_valid_samples():
     """Return all valid sample data for parameterized testing."""
@@ -197,6 +210,9 @@ def get_all_valid_samples():
         ("Stop", SAMPLE_STOP_WITH_HOOK),
         ("SubagentStop", SAMPLE_SUBAGENT_STOP_WITH_HOOK),
         ("PreCompact", SAMPLE_PRE_COMPACT_MANUAL),
+        ("SessionStart", SAMPLE_SESSION_START_STARTUP),
+        ("SessionStart", SAMPLE_SESSION_START_RESUME),
+        ("SessionStart", SAMPLE_SESSION_START_CLEAR),
     ]
 
 
@@ -205,4 +221,29 @@ def get_invalid_samples():
     return [
         ("missing_hook_event", INVALID_MISSING_HOOK_EVENT),
         ("unknown_hook_event", INVALID_UNKNOWN_HOOK_EVENT),
+        ("session_start_missing_source", INVALID_SESSION_START_MISSING_SOURCE),
+        ("session_start_invalid_source", INVALID_SESSION_START_INVALID_SOURCE),
     ]
+
+
+# SessionStart sample data
+SAMPLE_SESSION_START_STARTUP = {
+    "hook_event_name": "SessionStart",
+    "session_id": "sess_abc123def456",
+    "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
+    "source": "startup",
+}
+
+SAMPLE_SESSION_START_RESUME = {
+    "hook_event_name": "SessionStart",
+    "session_id": "sess_abc123def456",
+    "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
+    "source": "resume",
+}
+
+SAMPLE_SESSION_START_CLEAR = {
+    "hook_event_name": "SessionStart",
+    "session_id": "sess_abc123def456",
+    "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
+    "source": "clear",
+}
