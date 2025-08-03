@@ -71,6 +71,7 @@ That's it. No JSON parsing, no validation headaches.
 Build each hook type with real examples:
 
 ### PreToolUse (Security Guard)
+
 Block dangerous commands before they run:
 
 ```python
@@ -88,6 +89,7 @@ else:
 ```
 
 ### PostToolUse (Auto-formatter)
+
 Format Python files after writing:
 
 ```python
@@ -105,6 +107,7 @@ if c.tool_name == "Write" and c.tool_input.get("file_path", "").endswith(".py"):
 ```
 
 ### Notification (Desktop Alerts)
+
 Send desktop notifications:
 
 ```python
@@ -120,6 +123,7 @@ if "permission" in c.message.lower():
 ```
 
 ### Stop (Task Manager)
+
 Keep Claude working on long tasks:
 
 ```python
@@ -138,6 +142,7 @@ else:
 > Since hooks are executed in parallel in Claude Code, it is necessary to check `stop_hook_active` to determine if Claude has already been activated by another parallel Stop Hook.
 
 ### SubagentStop (Workflow Control)
+
 Same as Stop, but for subagents:
 
 ```python
@@ -148,6 +153,7 @@ c.output.allow()  # Let subagents complete
 ```
 
 ### UserPromptSubmit (Prompt Filter)
+
 Filter and enrich user prompts before processing:
 
 ```python
@@ -164,6 +170,7 @@ else:
 ```
 
 ### UserPromptSubmit (Prompt Filter)
+
 Filter and enrich user prompts before processing:
 
 ```python
@@ -180,6 +187,7 @@ else:
 ```
 
 ### PreCompact (Custom Instructions)
+
 Add custom compaction rules:
 
 ```python
@@ -253,17 +261,18 @@ except Exception as e:
 
 ## Quick API Guide
 
-| Hook Type | What You Get | Key Properties |
-|-----------|--------------|----------------|
-| **PreToolUse** | `c.tool_name`, `c.tool_input` | Block dangerous tools |
-| **PostToolUse** | `c.tool_response` | React to tool results |
-| **Notification** | `c.message` | Handle notifications |
-| **Stop** | `c.stop_hook_active` | Control when Claude stops |
-| **SubagentStop** | `c.stop_hook_active` | Control subagent behavior |
-| **UserPromptSubmit** | `c.prompt` | Filter and enrich prompts |
-| **PreCompact** | `c.trigger`, `c.custom_instructions` | Modify transcript compaction |
+| Hook Type            | What You Get                         | Key Properties               |
+| -------------------- | ------------------------------------ | ---------------------------- |
+| **PreToolUse**       | `c.tool_name`, `c.tool_input`        | Block dangerous tools        |
+| **PostToolUse**      | `c.tool_response`                    | React to tool results        |
+| **Notification**     | `c.message`                          | Handle notifications         |
+| **Stop**             | `c.stop_hook_active`                 | Control when Claude stops    |
+| **SubagentStop**     | `c.stop_hook_active`                 | Control subagent behavior    |
+| **UserPromptSubmit** | `c.prompt`                           | Filter and enrich prompts    |
+| **PreCompact**       | `c.trigger`, `c.custom_instructions` | Modify transcript compaction |
 
 ### Simple Mode (Exit Codes)
+
 ```python
 # Exit 0 = success, Exit 1 = non-block, Exit 2 = deny/block
 c.output.exit_success()  # ✅
@@ -272,6 +281,7 @@ c.output.exit_deny("reason")  # ❌
 ```
 
 ### Advanced Mode (JSON)
+
 ```python
 # Precise control over Claude's behavior
 c.output.allow("reason")
@@ -282,6 +292,7 @@ c.output.ask()
 ## Production Examples
 
 ### Multi-tool Security Guard
+
 Block dangerous operations across multiple tools:
 
 ```python
@@ -315,6 +326,7 @@ else:
 ```
 
 ### Auto-linter Hook
+
 Lint Python files after writing:
 
 ```python
@@ -341,6 +353,7 @@ if c.tool_name == "Write" and c.tool_input.get("file_path", "").endswith(".py"):
 ```
 
 ### Git-aware Auto-commit
+
 Auto-commit file changes:
 
 ```python
@@ -374,6 +387,7 @@ if c.tool_name == "Write":
 ```
 
 ### Permission Logger
+
 Log all permission requests:
 
 ```python
