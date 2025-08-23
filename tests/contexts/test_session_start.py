@@ -147,8 +147,8 @@ class TestSessionStartContext:
 class TestSessionStartOutput:
     """Test SessionStartOutput functionality."""
 
-    def test_additional_context(self):
-        """Test additional_context method."""
+    def test_add_context(self):
+        """Test add_context method."""
         data = {
             "hook_event_name": "SessionStart",
             "session_id": "test-123",
@@ -159,7 +159,7 @@ class TestSessionStartOutput:
         context = SessionStartContext(data)
 
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.additional_context("Loading project context and recent changes")
+            context.output.add_context("Loading project context and recent changes")
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -168,8 +168,8 @@ class TestSessionStartOutput:
             assert result["hookSpecificOutput"]["hookEventName"] == "SessionStart"
             assert result["hookSpecificOutput"]["additionalContext"] == "Loading project context and recent changes"
 
-    def test_additional_context_with_suppress_output(self):
-        """Test additional_context method with suppress_output=True."""
+    def test_add_context_with_suppress_output(self):
+        """Test add_context method with suppress_output=True."""
         data = {
             "hook_event_name": "SessionStart",
             "session_id": "test-123",
@@ -180,7 +180,7 @@ class TestSessionStartOutput:
         context = SessionStartContext(data)
 
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.additional_context("Resuming previous session context", suppress_output=True)
+            context.output.add_context("Resuming previous session context", suppress_output=True)
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -257,7 +257,7 @@ Recent changes: Added authentication module
 Open issues: 3 (2 bugs, 1 feature request)
 Last commit: feat: Add JWT authentication
 """
-            context.output.additional_context(project_context)
+            context.output.add_context(project_context)
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -277,7 +277,7 @@ Last commit: feat: Add JWT authentication
         # Test resuming with previous context
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
             resume_context = "Resuming work on user authentication module. Previous task: implementing OAuth2 flow."
-            context.output.additional_context(resume_context)
+            context.output.add_context(resume_context)
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -297,7 +297,7 @@ Last commit: feat: Add JWT authentication
         # Test providing fresh context after clear
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
             fresh_context = "Starting fresh session. Current working directory: /home/user/project"
-            context.output.additional_context(fresh_context)
+            context.output.add_context(fresh_context)
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -325,7 +325,7 @@ Recent commits:
 - docs: Update API documentation
 Modified files: src/auth.py, tests/test_auth.py
 """
-            context.output.additional_context(git_context)
+            context.output.add_context(git_context)
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -352,7 +352,7 @@ Development Environment:
 - Redis: 6.2 (local)
 - Testing: pytest with coverage
 """
-            context.output.additional_context(env_context)
+            context.output.add_context(env_context)
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -387,7 +387,7 @@ Development Environment:
 
         # Test suppressed output
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            context.output.additional_context("Internal context data", suppress_output=True)
+            context.output.add_context("Internal context data", suppress_output=True)
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)

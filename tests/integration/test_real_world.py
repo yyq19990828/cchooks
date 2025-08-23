@@ -512,7 +512,7 @@ Recent Changes:
 - Updated API documentation
 Open Issues: 5 (3 bugs, 2 features)
 """
-            context.output.additional_context(project_context)
+            context.output.add_context(project_context)
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -536,7 +536,7 @@ Open Issues: 5 (3 bugs, 2 features)
         # Provide resume context
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
             resume_context = "Resuming work on OAuth2 implementation. Last task: Testing refresh token flow."
-            context.output.additional_context(resume_context)
+            context.output.add_context(resume_context)
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -559,7 +559,7 @@ Open Issues: 5 (3 bugs, 2 features)
         # Provide fresh context
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
             fresh_context = "New session started. Current working directory: /home/user/project"
-            context.output.additional_context(fresh_context)
+            context.output.add_context(fresh_context)
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -591,7 +591,7 @@ Recent Commits:
 Modified Files: src/auth/, tests/test_auth.py
 Open Pull Requests: 2
 """
-            context.output.additional_context(git_info)
+            context.output.add_context(git_info)
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -623,7 +623,7 @@ Development Environment:
 - Testing Framework: pytest with coverage
 - Code Quality: ruff, mypy, black
 """
-            context.output.additional_context(env_info)
+            context.output.add_context(env_info)
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -664,7 +664,7 @@ Development Environment:
         # Test suppressed output
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
             internal_context = "Internal session data loaded successfully"
-            context.output.additional_context(internal_context, suppress_output=True)
+            context.output.add_context(internal_context, suppress_output=True)
 
             output = mock_stdout.getvalue().strip()
             result = json.loads(output)
@@ -739,9 +739,10 @@ Development Environment:
             assert hasattr(context, "hook_event_name")
 
             # For SessionStart, test context loading
+            assert isinstance(context, SessionStartContext)
             if step["hook"] == "SessionStart" and step["expected"] == "load_context":
                 with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-                    context.output.additional_context(step["context"])
+                    context.output.add_context(step["context"])
                     output = mock_stdout.getvalue().strip()
                     result = json.loads(output)
                     assert result["continue"] is True

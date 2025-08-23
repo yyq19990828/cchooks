@@ -72,7 +72,7 @@ class SessionStartOutput(BaseHookOutput):
     the session context rather than shown in transcript mode.
     """
 
-    def additional_context(self, context: str, suppress_output: bool = False) -> None:
+    def add_context(self, context: str, suppress_output: bool = False) -> None:
         """Add additional context to the session using hookSpecificOutput.
 
         The context string will be added to Claude's context for the session.
