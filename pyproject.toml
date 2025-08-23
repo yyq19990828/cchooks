@@ -30,7 +30,7 @@ dev = [
     "pytest-cov",
     "pytest-mock",
     "ruff",
-    "mypy",
+    "pyright",
 ]
 
 [tool.pytest.ini_options]
@@ -50,3 +50,9 @@ addopts = [
 
 [tool.uv.sources]
 cchooks = { workspace = true }
+
+[tool.pyright]
+include = ["src"]
+exclude = ["**/__pycache__", "**/.*"]
+venvPath = "."
+venv = ".venv"

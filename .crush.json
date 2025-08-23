@@ -1,0 +1,9 @@
+{
+  "$schema": "https://charm.land/crush.json",
+  "lsp": {
+    "pyright": {
+      "command": "pyright-langserver",
+      "args": ["--stdio", "-v", "."]
+    }
+  }
+}

@@ -82,9 +82,9 @@ format-check: ## Check code formatting
 
 # Type checking
 .PHONY: type-check
-type-check: ## Run type checking with mypy
+type-check: ## Run type checking with pyright
 	@echo "Running type checks..."
-	@uv run mypy $(SRC_DIR)/
+	@uv run pyright $(SRC_DIR)/
 	@echo "Type checks complete!"
 
 # Build and distribution
