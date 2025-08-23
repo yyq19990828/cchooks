@@ -12,6 +12,7 @@ HookEventType = Literal[
     "SubagentStop",
     "PreCompact",
     "SessionStart",
+    "SessionEnd",
 ]
 
 # Trigger types for PreCompact
@@ -19,6 +20,9 @@ PreCompactTrigger = Literal["manual", "auto"]
 
 # Source types for SessionStart
 SessionStartSource = Literal["startup", "resume", "clear"]
+
+# Reason types for SessionEnd
+SessionEndReason = Literal["clear", "logout", "prompt_input_exit", "other"]
 
 # Permission decision types for PreToolUse
 PreToolUsePermissionDecision = Literal["allow", "deny", "ask"]
@@ -35,6 +39,7 @@ StopInput = Dict[str, Any]  # + stop_hook_active
 SubagentStopInput = Dict[str, Any]  # + stop_hook_active
 PreCompactInput = Dict[str, Any]  # + trigger, custom_instructions
 SessionStartInput = Dict[str, Any]  # + source
+SessionEndInput = Dict[str, Any]  # + reason, cwd
 
 # Hook input union
 HookInput = Union[
@@ -46,6 +51,7 @@ HookInput = Union[
     SubagentStopInput,
     PreCompactInput,
     SessionStartInput,
+    SessionEndInput,
 ]
 
 
@@ -75,6 +81,7 @@ class PostToolUseHookSpecificOutput(HookSpecificOutput):
     """Hook-specific output for PostToolUse."""
 
     hookEventName: Literal["PostToolUse"]
+    additionalContext: Optional[str] = None
 
 
 class StopHookSpecificOutput(HookSpecificOutput):
@@ -100,6 +107,12 @@ class SessionStartHookSpecificOutput(HookSpecificOutput):
 
     hookEventName: Literal["SessionStart"]
     additionalContext: Optional[str] = None
+
+
+class SessionEndHookSpecificOutput(HookSpecificOutput):
+    """Hook-specific output for SessionEnd."""
+
+    hookEventName: Literal["SessionEnd"]
 
 
 # JSON output types

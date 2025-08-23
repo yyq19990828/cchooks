@@ -93,6 +93,26 @@ class PostToolUseOutput(BaseHookOutput):
         output = self._continue_flow(suppress_output)
         print(json.dumps(output), file=sys.stdout)
 
+    def add_context(self, context: str, suppress_output: bool = False) -> None:
+        """Add additional context for Claude to consider using hookSpecificOutput.
+
+        The context string will be provided to Claude for further reasoning
+        after the tool execution.
+
+        Args:
+            context (str): Additional context for Claude to consider
+            suppress_output (bool): Hide stdout from transcript mode (default: False)
+        """
+        output = self._continue_flow(suppress_output)
+        hook_specific_output = {
+            "hookEventName": "PostToolUse",
+            "additionalContext": context,
+        }
+        output = self._with_specific_output(
+            output, "PostToolUse", **hook_specific_output
+        )
+        print(json.dumps(output), file=sys.stdout)
+
     def halt(self, reason: str, suppress_output: bool = False) -> None:
         """Stop all processing immediately.
 

@@ -68,22 +68,29 @@ class BaseHookOutput(ABC):
         # self.base_json = base_json
         pass
 
-    def _continue_flow(self, suppress_output: bool = False) -> CommonOutput:
+    def _continue_flow(
+        self, suppress_output: bool = False, system_message: Optional[str] = None
+    ) -> CommonOutput:
         """Construct Json with continue is true"""
         return {
             "continue": True,
             "stopReason": "stopReason",
             "suppressOutput": suppress_output,
+            "systemMessage": system_message,
         }
 
     def _stop_flow(
-        self, stop_reason: str, suppress_output: bool = False
+        self,
+        stop_reason: str,
+        suppress_output: bool = False,
+        system_message: Optional[str] = None,
     ) -> CommonOutput:
         """Construct Json with continue is false"""
         return {
             "continue": False,
             "stopReason": stop_reason,
             "suppressOutput": suppress_output,
+            "systemMessage": system_message,
         }
 
     def _with_specific_output(

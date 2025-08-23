@@ -9,6 +9,7 @@ from .stop import StopContext, StopOutput
 from .subagent_stop import SubagentStopContext, SubagentStopOutput
 from .pre_compact import PreCompactContext, PreCompactOutput
 from .session_start import SessionStartContext, SessionStartOutput
+from .session_end import SessionEndContext, SessionEndOutput
 
 __all__ = [
     "BaseHookContext",
@@ -29,4 +30,6 @@ __all__ = [
     "PreCompactOutput",
     "SessionStartContext",
     "SessionStartOutput",
+    "SessionEndContext",
+    "SessionEndOutput",
 ]

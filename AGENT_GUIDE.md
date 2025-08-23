@@ -26,6 +26,7 @@ The codebase is organized into:
 6. **PreCompact**: Runs before transcript compaction
 7. **UserPromptSubmit**: After user prompt submission
 8. **SessionStart**: When Claude Code starts or resumes sessions
+9. **SessionEnd**: When Claude Code session ends
 
 ## Essential Commands
 
@@ -157,7 +158,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Python library (`cchooks`) for developing Claude Code hooks - user-defined shell commands that execute at various points in Claude Code's lifecycle. The library provides type-safe interfaces and utilities for all 6 hook types.
+This is a Python library (`cchooks`) for developing Claude Code hooks - user-defined shell commands that execute at various points in Claude Code's lifecycle. The library provides type-safe interfaces and utilities for all 8 hook types.
 
 ## Architecture
 
@@ -177,6 +178,9 @@ The codebase is organized into:
 4. **Stop**: Controls Claude's stopping behavior
 5. **SubagentStop**: Controls subagent stopping behavior
 6. **PreCompact**: Runs before transcript compaction
+7. **UserPromptSubmit**: After user prompt submission
+8. **SessionStart**: When Claude Code starts or resumes sessions
+9. **SessionEnd**: When Claude Code session ends
 
 ## Development Commands
 
@@ -321,7 +325,7 @@ tests/
 # cchooks Development Guide
 
 ## Project Overview
-Python library for developing Claude Code hooks - user-defined shell commands that execute at various points in Claude Code's lifecycle. Provides type-safe interfaces for 7 hook types.
+Python library for developing Claude Code hooks - user-defined shell commands that execute at various points in Claude Code's lifecycle. Provides type-safe interfaces for 9 hook types.
 
 ## Essential Commands
 
@@ -346,15 +350,16 @@ Python library for developing Claude Code hooks - user-defined shell commands th
 
 ## Hook Types & Usage
 
-### 7 Hook Types
+### 9 Hook Types
 1. **PreToolUse**: Before tool execution, can approve/block
 2. **PostToolUse**: After tool execution, feedback only
 3. **Notification**: Process notifications, no decisions
 4. **Stop**: Control Claude stopping behavior
 5. **SubagentStop**: Control subagent stopping
 6. **PreCompact**: Before transcript compaction
-7. **UserPrmomptSubmission**: After user prompt submission
+7. **UserPromptSubmit**: After user prompt submission
 8. **SessionStart**: When Claude Code starts or resumes sessions
+9. **SessionEnd**: When Claude Code session ends
 
 ### Usage Pattern
 ```python
