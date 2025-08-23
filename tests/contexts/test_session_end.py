@@ -143,8 +143,8 @@ class TestSessionEndOutput:
         result = output._continue_flow()
 
         assert result["continue"] is True
-        # systemMessage should be None when not provided
-        assert result["systemMessage"] is None
+        # systemMessage should be absent when not provided
+        assert "systemMessage" not in result
 
     def test_json_output_with_suppress_output(self):
         """Test JSON output format with suppress output."""

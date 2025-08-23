@@ -183,6 +183,36 @@ class TestPostToolUseOutput:
             assert result["continue"] is True
             assert result["decision"] == "block"
             assert result["reason"] == "Python file written, consider formatting"
+            assert "systemMessage" not in result
+
+    def test_challenge_with_system_message(self):
+        """Test challenge method with system message."""
+        data = {
+            "session_id": "test-123",
+            "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
+            "hook_event_name": "PostToolUse",
+            "tool_name": "Write",
+            "tool_input": {"file_path": "/tmp/test.py", "content": "print('hello')"},
+            "tool_response": {"success": True, "content": "File written"},
+        }
+
+        context = PostToolUseContext(data)
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            context.output.challenge(
+                "Python file written, consider formatting",
+                suppress_output=False,
+                system_message="📝 Code quality suggestion: Consider formatting this Python file"
+            )
+
+            output = mock_stdout.getvalue().strip()
+            result = json.loads(output)
+
+            assert result["continue"] is True
+            assert result["decision"] == "block"
+            assert result["reason"] == "Python file written, consider formatting"
+            assert result["systemMessage"] == "📝 Code quality suggestion: Consider formatting this Python file"
 
     def test_halt(self):
         """Test stop processing method."""
@@ -206,6 +236,35 @@ class TestPostToolUseOutput:
 
             assert result["continue"] is False
             assert result["stopReason"] == "Security violation detected"
+            assert "systemMessage" not in result
+
+    def test_halt_with_system_message(self):
+        """Test halt method with system message."""
+        data = {
+            "session_id": "test-123",
+            "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
+            "hook_event_name": "PostToolUse",
+            "tool_name": "Write",
+            "tool_input": {"file_path": "/tmp/test.txt", "content": "test"},
+            "tool_response": {"success": False, "error": "Security violation"},
+        }
+
+        context = PostToolUseContext(data)
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            context.output.halt(
+                "Security violation detected",
+                suppress_output=False,
+                system_message="🚨 Security breach detected: Operation halted"
+            )
+
+            output = mock_stdout.getvalue().strip()
+            result = json.loads(output)
+
+            assert result["continue"] is False
+            assert result["stopReason"] == "Security violation detected"
+            assert result["systemMessage"] == "🚨 Security breach detected: Operation halted"
 
     def test_accept(self):
         """Test continue direct method."""
@@ -229,6 +288,34 @@ class TestPostToolUseOutput:
 
             assert result["continue"] is True
             assert "decision" not in result  # Should not include decision
+            assert "systemMessage" not in result
+
+    def test_accept_with_system_message(self):
+        """Test accept method with system message."""
+        data = {
+            "session_id": "test-123",
+            "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
+            "hook_event_name": "PostToolUse",
+            "tool_name": "Write",
+            "tool_input": {"file_path": "/tmp/test.txt", "content": "test"},
+            "tool_response": {"success": True, "content": "success"},
+        }
+
+        context = PostToolUseContext(data)
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            context.output.accept(
+                suppress_output=False,
+                system_message="✅ Operation completed successfully"
+            )
+
+            output = mock_stdout.getvalue().strip()
+            result = json.loads(output)
+
+            assert result["continue"] is True
+            assert "decision" not in result  # Should not include decision
+            assert result["systemMessage"] == "✅ Operation completed successfully"
 
     def test_output_suppression(self):
         """Test output suppression functionality."""
@@ -274,6 +361,36 @@ class TestPostToolUseOutput:
             assert result["continue"] is True
             assert result["hookSpecificOutput"]["hookEventName"] == "PostToolUse"
             assert result["hookSpecificOutput"]["additionalContext"] == "This is additional context for Claude"
+            assert "systemMessage" not in result
+
+    def test_add_context_with_system_message(self):
+        """Test add_context method with system message."""
+        data = {
+            "hook_event_name": "PostToolUse",
+            "session_id": "test-123",
+            "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
+            "tool_name": "Write",
+            "tool_input": {"file_path": "/tmp/test.py", "content": "print('hello')"},
+            "tool_response": {"success": True, "content": "File written"},
+        }
+
+        context = PostToolUseContext(data)
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            context.output.add_context(
+                "This is additional context for Claude",
+                suppress_output=False,
+                system_message="📋 Adding context information for better decision making"
+            )
+            
+            output = mock_stdout.getvalue().strip()
+            result = json.loads(output)
+            
+            assert result["continue"] is True
+            assert result["hookSpecificOutput"]["hookEventName"] == "PostToolUse"
+            assert result["hookSpecificOutput"]["additionalContext"] == "This is additional context for Claude"
+            assert result["systemMessage"] == "📋 Adding context information for better decision making"
 
     def test_add_context_with_suppress_output(self):
         """Test add_context method with suppress_output parameter."""

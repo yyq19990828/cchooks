@@ -29,6 +29,7 @@ A lightweight Python Toolkit that makes building Claude Code hooks as simple as 
 - **9 hook types**: Support for all Claude Code hook events including SessionStart and SessionEnd
 - **Two modes**: Simple exit codes OR advanced JSON control
 - **Type-safe**: Full type hints and IDE autocompletion
+- **System Message Support**: Provide optional warning messages to users for all decision-making hooks
 
 ## Installation
 
@@ -81,11 +82,14 @@ from cchooks import create_context, PreToolUseContext
 c = create_context()
 
 assert isinstance(c, PreToolUseContext)
-# Block rm -rf commands
+# Block rm -rf commands with user warning
 if c.tool_name == "Bash" and "rm -rf" in c.tool_input.get("command", ""):
-    c.output.exit_deny("You should not execute this command: System protection: rm -rf blocked")
+    c.output.deny(
+        reason="You should not execute this command: System protection: rm -rf blocked",
+        system_message="⚠️ This command could permanently delete files. Please use caution."
+    )
 else:
-    c.output.exit_success()
+    c.output.allow()
 ```
 
 ### PostToolUse (Auto-formatter)
@@ -134,7 +138,10 @@ c = create_context()
 
 assert isinstance(c, StopContext)
 if not c.stop_hook_active: # Claude has not been activated by other Stop Hook
-    c.output.prevent("Hey Claude, you should try to do more works!") # Prevent from stopping, and prompt Claude
+    c.output.prevent(
+        reason="Hey Claude, you should try to do more works!",
+        system_message="Claude is working on important tasks. You can stop manually if needed."
+    ) # Prevent from stopping, and prompt Claude
 else:
     c.output.allow()  # Allow stop
 ```
@@ -162,11 +169,14 @@ from cchooks import create_context, UserPromptSubmitContext
 c = create_context()
 
 assert isinstance(c, UserPromptSubmitContext)
-# Block prompts with sensitive data
+# Block prompts with sensitive data with user warning
 if "password" in c.prompt.lower():
-    c.output.exit_block("Security: Prompt contains sensitive data")
+    c.output.block(
+        reason="Security: Prompt contains sensitive data",
+        system_message="🔒 For security reasons, please avoid sharing passwords or sensitive information."
+    )
 else:
-    c.output.exit_success()
+    c.output.allow()
 ```
 
 ### SessionStart (Context Loader)
@@ -337,6 +347,38 @@ except Exception as e:
 | **SessionStart**     | `c.source`                           | Load development context     |
 | **SessionEnd**       | `c.reason`                           | Perform cleanup tasks        |
 
+> **Note**: Most decision-making methods support the optional `system_message` parameter for providing user warnings. See the [System Message Support](#system-message-support) section for details.
+
+## System Message Support
+
+The `system_message` parameter allows you to provide optional warning messages that will be shown to users when your hooks make decisions. This is particularly useful for security hooks, policy enforcement, and providing contextual feedback.
+
+### Supported Hook Types
+
+The `system_message` parameter is available in the following hook types:
+
+| Hook Type            | Supported Methods                                                |
+| -------------------- | ---------------------------------------------------------------- |
+| **PreToolUse**       | `allow()`, `deny()`, `ask()`, `halt()`                           |
+| **PostToolUse**      | `accept()`, `challenge()`, `ignore()`, `add_context()`, `halt()` |
+| **Stop**             | `halt()`, `prevent()`, `allow()`                                 |
+| **SubagentStop**     | `halt()`, `prevent()`, `allow()`                                 |
+| **UserPromptSubmit** | `allow()`, `block()`, `add_context()`, `halt()`                  |
+| **SessionStart**     | `add_context()`                                                  |
+
+### JSON Output Format
+
+When you provide a `system_message`, it appears in the JSON output as the `systemMessage` field:
+
+```json
+{
+  "continue": false,
+  "decision": "deny",
+  "reason": "Dangerous command detected",
+  "systemMessage": "⚠️ This command could permanently delete files. Please use caution."
+}
+```
+
 ### Simple Mode (Exit Codes)
 
 ```python
@@ -349,10 +391,10 @@ c.output.exit_deny("reason")  # ❌
 ### Advanced Mode (JSON)
 
 ```python
-# Precise control over Claude's behavior
-c.output.allow("reason")
-c.output.deny("reason")
-c.output.ask()
+# Precise control over Claude's behavior with user warnings
+c.output.allow("reason", system_message="Optional warning message")
+c.output.deny("reason", system_message="Security warning")
+c.output.ask(system_message="This operation requires your attention")
 ```
 
 ## Production Examples

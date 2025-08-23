@@ -164,6 +164,32 @@ class TestStopOutput:
 
             assert result["continue"] is False
             assert result["stopReason"] == "User requested stop"
+            assert "systemMessage" not in result
+
+    def test_halt_with_system_message(self):
+        """Test halt method with system message."""
+        data = {
+            "hook_event_name": "Stop",
+            "session_id": "test-123",
+            "transcript_path": "/tmp/transcript.json",
+            "stop_hook_active": True,
+        }
+
+        context = StopContext(data)
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            context.output.halt(
+                "User requested stop",
+                suppress_output=False,
+                system_message="⏹️ User initiated stop sequence"
+            )
+
+            output = mock_stdout.getvalue().strip()
+            result = json.loads(output)
+
+            assert result["continue"] is False
+            assert result["stopReason"] == "User requested stop"
+            assert result["systemMessage"] == "⏹️ User initiated stop sequence"
 
     def test_prevent(self):
         """Test continue block method."""
@@ -185,6 +211,33 @@ class TestStopOutput:
             assert result["continue"] is True
             assert result["decision"] == "block"
             assert result["reason"] == "More tasks to complete"
+            assert "systemMessage" not in result
+
+    def test_prevent_with_system_message(self):
+        """Test prevent method with system message."""
+        data = {
+            "hook_event_name": "Stop",
+            "session_id": "test-123",
+            "transcript_path": "/tmp/transcript.json",
+            "stop_hook_active": False,
+        }
+
+        context = StopContext(data)
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            context.output.prevent(
+                "More tasks to complete",
+                suppress_output=False,
+                system_message="🚫 Stop prevented: Additional tasks remaining"
+            )
+
+            output = mock_stdout.getvalue().strip()
+            result = json.loads(output)
+
+            assert result["continue"] is True
+            assert result["decision"] == "block"
+            assert result["reason"] == "More tasks to complete"
+            assert result["systemMessage"] == "🚫 Stop prevented: Additional tasks remaining"
 
     def test_allow(self):
         """Test continue direct method."""
@@ -205,6 +258,31 @@ class TestStopOutput:
 
             assert result["continue"] is True
             assert "decision" not in result
+            assert "systemMessage" not in result
+
+    def test_allow_with_system_message(self):
+        """Test allow method with system message."""
+        data = {
+            "hook_event_name": "Stop",
+            "session_id": "test-123",
+            "transcript_path": "/tmp/transcript.json",
+            "stop_hook_active": True,
+        }
+
+        context = StopContext(data)
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            context.output.allow(
+                suppress_output=False,
+                system_message="✅ Stop request approved by hook"
+            )
+
+            output = mock_stdout.getvalue().strip()
+            result = json.loads(output)
+
+            assert result["continue"] is True
+            assert "decision" not in result
+            assert result["systemMessage"] == "✅ Stop request approved by hook"
 
 class TestStopRealWorldScenarios:
     """Test real-world stopping scenarios."""

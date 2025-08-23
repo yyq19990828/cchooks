@@ -178,6 +178,23 @@ class TestUserPromptSubmitOutput:
 
             assert output_json["continue"] is True
             assert "suppressOutput" in output_json
+            assert "systemMessage" not in output_json
+
+    def test_allow_method_with_system_message(self):
+        """Test allow method with system message."""
+        output = UserPromptSubmitOutput()
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            output.allow(
+                suppress_output=False,
+                system_message="✅ User prompt submission approved"
+            )
+            output_str = mock_stdout.getvalue().strip()
+            output_json = json.loads(output_str)
+
+            assert output_json["continue"] is True
+            assert "suppressOutput" in output_json
+            assert output_json["systemMessage"] == "✅ User prompt submission approved"
 
     def test_allow_with_suppress_output(self):
         """Test allow method with suppress_output=True."""
@@ -205,6 +222,28 @@ class TestUserPromptSubmitOutput:
                 assert output_json["continue"] is True
                 assert output_json["decision"] == "block"
                 assert output_json["reason"] == "Prompt contains sensitive information"
+                assert "systemMessage" not in output_json
+                mock_exit.assert_called_once_with(0)
+
+    def test_block_with_system_message(self):
+        """Test block method with system message."""
+        output = UserPromptSubmitOutput()
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            with patch("sys.exit") as mock_exit:
+                output.block(
+                    "Prompt contains sensitive information",
+                    suppress_output=False,
+                    system_message="🚫 Security alert: Sensitive content detected in prompt"
+                )
+
+                output_str = mock_stdout.getvalue().strip()
+                output_json = json.loads(output_str)
+
+                assert output_json["continue"] is True
+                assert output_json["decision"] == "block"
+                assert output_json["reason"] == "Prompt contains sensitive information"
+                assert output_json["systemMessage"] == "🚫 Security alert: Sensitive content detected in prompt"
                 mock_exit.assert_called_once_with(0)
 
     def test_block_with_suppress_output(self):
@@ -237,6 +276,26 @@ class TestUserPromptSubmitOutput:
             assert output_json["continue"] is True
             assert output_json["hookSpecificOutput"]["hookEventName"] == "UserPromptSubmit"
             assert output_json["hookSpecificOutput"]["additionalContext"] == "Additional context: User is a Python developer"
+            assert "systemMessage" not in output_json
+
+    def test_add_context_with_system_message(self):
+        """Test add_context method with system message."""
+        output = UserPromptSubmitOutput()
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            output.add_context(
+                "Additional context: User is a Python developer",
+                suppress_output=False,
+                system_message="📝 Adding user context: Python developer background"
+            )
+            
+            output_str = mock_stdout.getvalue().strip()
+            output_json = json.loads(output_str)
+            
+            assert output_json["continue"] is True
+            assert output_json["hookSpecificOutput"]["hookEventName"] == "UserPromptSubmit"
+            assert output_json["hookSpecificOutput"]["additionalContext"] == "Additional context: User is a Python developer"
+            assert output_json["systemMessage"] == "📝 Adding user context: Python developer background"
 
     def test_add_context_with_suppress_output(self):
         """Test add_context method with suppress_output=True."""

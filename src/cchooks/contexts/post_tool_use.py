@@ -64,36 +64,53 @@ class PostToolUseContext(BaseHookContext):
 class PostToolUseOutput(BaseHookOutput):
     """Output handler for PostToolUse hooks."""
 
-    def accept(self, suppress_output: bool = False) -> None:
+    def accept(
+        self, suppress_output: bool = False, system_message: Optional[str] = None
+    ) -> None:
         """Accept the tool results and continue processing.
 
         Args:
             suppress_output (bool): Hide stdout from transcript mode (default: False)
+            system_message (Optional[str]): Optional warning message shown to the user (default: None)
         """
-        output = self._continue_flow(suppress_output)
+        output = self._continue_flow(suppress_output, system_message)
         print(json.dumps(output), file=sys.stdout)
 
-    def challenge(self, reason: str, suppress_output: bool = False) -> None:
+    def challenge(
+        self,
+        reason: str,
+        suppress_output: bool = False,
+        system_message: Optional[str] = None,
+    ) -> None:
         """Challenge the tool results and prompt Claude for review.
 
         Args:
             reason (str): Reason for challenging, shown to Claude for further reasoning
             suppress_output (bool): Hide stdout from transcript mode (default: False)
+            system_message (Optional[str]): Optional warning message shown to the user (default: None)
         """
-        output = self._continue_flow(suppress_output)
+        output = self._continue_flow(suppress_output, system_message)
         output.update({"decision": "block", "reason": reason})
         print(json.dumps(output), file=sys.stdout)
 
-    def ignore(self, suppress_output: bool = False) -> None:
+    def ignore(
+        self, suppress_output: bool = False, system_message: Optional[str] = None
+    ) -> None:
         """Ignore the tool results and continue processing.
 
         Args:
             suppress_output (bool): Hide stdout from transcript mode (default: False)
+            system_message (Optional[str]): Optional warning message shown to the user (default: None)
         """
-        output = self._continue_flow(suppress_output)
+        output = self._continue_flow(suppress_output, system_message)
         print(json.dumps(output), file=sys.stdout)
 
-    def add_context(self, context: str, suppress_output: bool = False) -> None:
+    def add_context(
+        self,
+        context: str,
+        suppress_output: bool = False,
+        system_message: Optional[str] = None,
+    ) -> None:
         """Add additional context for Claude to consider using hookSpecificOutput.
 
         The context string will be provided to Claude for further reasoning
@@ -102,8 +119,9 @@ class PostToolUseOutput(BaseHookOutput):
         Args:
             context (str): Additional context for Claude to consider
             suppress_output (bool): Hide stdout from transcript mode (default: False)
+            system_message (Optional[str]): Optional warning message shown to the user (default: None)
         """
-        output = self._continue_flow(suppress_output)
+        output = self._continue_flow(suppress_output, system_message)
         hook_specific_output = {
             "hookEventName": "PostToolUse",
             "additionalContext": context,
@@ -113,14 +131,20 @@ class PostToolUseOutput(BaseHookOutput):
         )
         print(json.dumps(output), file=sys.stdout)
 
-    def halt(self, reason: str, suppress_output: bool = False) -> None:
+    def halt(
+        self,
+        reason: str,
+        suppress_output: bool = False,
+        system_message: Optional[str] = None,
+    ) -> None:
         """Stop all processing immediately.
 
         Args:
             reason (str): Reason for stopping, shown to user
             suppress_output (bool): Hide stdout from transcript mode (default: False)
+            system_message (Optional[str]): Optional warning message shown to the user (default: None)
         """
-        output = self._stop_flow(reason, suppress_output)
+        output = self._stop_flow(reason, suppress_output, system_message)
         output.update({"decision": "block", "reason": ""})
         print(json.dumps(output), file=sys.stdout)
 

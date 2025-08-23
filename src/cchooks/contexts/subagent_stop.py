@@ -40,34 +40,49 @@ class SubagentStopContext(BaseHookContext):
 class SubagentStopOutput(BaseHookOutput):
     """Output handler for SubagentStop hooks."""
 
-    def halt(self, stop_reason: str, suppress_output: bool = False) -> None:
+    def halt(
+        self,
+        stop_reason: str,
+        suppress_output: bool = False,
+        system_message: Optional[str] = None,
+    ) -> None:
         """Stop all processing immediately with JSON response.
 
         Args:
             stop_reason (str): Stopping reason shown to the user, not shown to Claude
             suppress_output (bool): Hide stdout from transcript mode (default: False)
+            system_message (Optional[str]): Optional warning message shown to the user (default: None)
         """
-        output = self._stop_flow(stop_reason, suppress_output)
+        output = self._stop_flow(stop_reason, suppress_output, system_message)
         print(json.dumps(output), file=sys.stdout)
 
-    def prevent(self, reason: str, suppress_output: bool = False) -> None:
+    def prevent(
+        self,
+        reason: str,
+        suppress_output: bool = False,
+        system_message: Optional[str] = None,
+    ) -> None:
         """Prevent Claude from stopping and Prompt Claude with JSON response.
 
         Args:
             reason (str): Reason shown to Clade for further reasoning
             suppress_output (bool): Hide stdout from transcript mode (default: False)
+            system_message (Optional[str]): Optional warning message shown to the user (default: None)
         """
-        output = self._continue_flow(suppress_output)
+        output = self._continue_flow(suppress_output, system_message)
         output.update({"decision": "block", "reason": reason})
         print(json.dumps(output), file=sys.stdout)
 
-    def allow(self, suppress_output: bool = False) -> None:
+    def allow(
+        self, suppress_output: bool = False, system_message: Optional[str] = None
+    ) -> None:
         """Allow Claude to stop and Do nothing with JSON response.
 
         Args:
             suppress_output (bool): Hide stdout from transcript mode (default: False)
+            system_message (Optional[str]): Optional warning message shown to the user (default: None)
         """
-        output = self._continue_flow(suppress_output)
+        output = self._continue_flow(suppress_output, system_message)
         print(json.dumps(output), file=sys.stdout)
 
     def exit_success(self, message: Optional[str] = None) -> NoReturn:

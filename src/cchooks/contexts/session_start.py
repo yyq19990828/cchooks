@@ -72,7 +72,12 @@ class SessionStartOutput(BaseHookOutput):
     the session context rather than shown in transcript mode.
     """
 
-    def add_context(self, context: str, suppress_output: bool = False) -> None:
+    def add_context(
+        self,
+        context: str,
+        suppress_output: bool = False,
+        system_message: Optional[str] = None,
+    ) -> None:
         """Add additional context to the session using hookSpecificOutput.
 
         The context string will be added to Claude's context for the session.
@@ -81,8 +86,9 @@ class SessionStartOutput(BaseHookOutput):
         Args:
             context (str): Context string to add to the session
             suppress_output (bool): Hide stdout from transcript mode (default: False)
+            system_message (Optional[str]): Optional warning message shown to the user (default: None)
         """
-        output = self._continue_flow(suppress_output)
+        output = self._continue_flow(suppress_output, system_message)
         hook_specific_output = {
             "hookEventName": "SessionStart",
             "additionalContext": context,

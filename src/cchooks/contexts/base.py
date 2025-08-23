@@ -72,12 +72,14 @@ class BaseHookOutput(ABC):
         self, suppress_output: bool = False, system_message: Optional[str] = None
     ) -> CommonOutput:
         """Construct Json with continue is true"""
-        return {
+        result = {
             "continue": True,
             "stopReason": "stopReason",
             "suppressOutput": suppress_output,
-            "systemMessage": system_message,
         }
+        if system_message is not None:
+            result["systemMessage"] = system_message
+        return result
 
     def _stop_flow(
         self,
@@ -86,12 +88,14 @@ class BaseHookOutput(ABC):
         system_message: Optional[str] = None,
     ) -> CommonOutput:
         """Construct Json with continue is false"""
-        return {
+        result = {
             "continue": False,
             "stopReason": stop_reason,
             "suppressOutput": suppress_output,
-            "systemMessage": system_message,
         }
+        if system_message is not None:
+            result["systemMessage"] = system_message
+        return result
 
     def _with_specific_output(
         self, common_output: CommonOutput, hook_event_name: str, **specific_fields: Any

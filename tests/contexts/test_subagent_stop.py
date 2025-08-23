@@ -135,6 +135,32 @@ class TestSubagentStopOutput:
 
             assert result["continue"] is False
             assert result["stopReason"] == "Subagent completed all tasks"
+            assert "systemMessage" not in result
+
+    def test_halt_with_system_message(self):
+        """Test halt method with system message."""
+        data = {
+            "hook_event_name": "SubagentStop",
+            "session_id": "test-123",
+            "transcript_path": "/tmp/transcript.json",
+            "stop_hook_active": True,
+        }
+
+        context = SubagentStopContext(data)
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            context.output.halt(
+                "Subagent completed all tasks",
+                suppress_output=False,
+                system_message="🤖 Subagent task completion: All objectives achieved"
+            )
+
+            output = mock_stdout.getvalue().strip()
+            result = json.loads(output)
+
+            assert result["continue"] is False
+            assert result["stopReason"] == "Subagent completed all tasks"
+            assert result["systemMessage"] == "🤖 Subagent task completion: All objectives achieved"
 
     def test_prevent(self):
         """Test continue block method."""
@@ -156,6 +182,33 @@ class TestSubagentStopOutput:
             assert result["continue"] is True
             assert result["decision"] == "block"
             assert result["reason"] == "Subagent has more work to do"
+            assert "systemMessage" not in result
+
+    def test_prevent_with_system_message(self):
+        """Test prevent method with system message."""
+        data = {
+            "hook_event_name": "SubagentStop",
+            "session_id": "test-123",
+            "transcript_path": "/tmp/transcript.json",
+            "stop_hook_active": False,
+        }
+
+        context = SubagentStopContext(data)
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            context.output.prevent(
+                "Subagent has more work to do",
+                suppress_output=False,
+                system_message="🔄 Subagent continues: Additional tasks pending"
+            )
+
+            output = mock_stdout.getvalue().strip()
+            result = json.loads(output)
+
+            assert result["continue"] is True
+            assert result["decision"] == "block"
+            assert result["reason"] == "Subagent has more work to do"
+            assert result["systemMessage"] == "🔄 Subagent continues: Additional tasks pending"
 
     def test_allow(self):
         """Test continue direct method."""
@@ -176,6 +229,31 @@ class TestSubagentStopOutput:
 
             assert result["continue"] is True
             assert "decision" not in result
+            assert "systemMessage" not in result
+
+    def test_allow_with_system_message(self):
+        """Test allow method with system message."""
+        data = {
+            "hook_event_name": "SubagentStop",
+            "session_id": "test-123",
+            "transcript_path": "/tmp/transcript.json",
+            "stop_hook_active": True,
+        }
+
+        context = SubagentStopContext(data)
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            context.output.allow(
+                suppress_output=False,
+                system_message="✅ Subagent stop approved: Task completion confirmed"
+            )
+
+            output = mock_stdout.getvalue().strip()
+            result = json.loads(output)
+
+            assert result["continue"] is True
+            assert "decision" not in result
+            assert result["systemMessage"] == "✅ Subagent stop approved: Task completion confirmed"
 
 
 class TestSubagentStopRealWorldScenarios:

@@ -55,14 +55,20 @@ class PreToolUseContext(BaseHookContext):
 class PreToolUseOutput(BaseHookOutput):
     """Output handler for PreToolUse hooks."""
 
-    def allow(self, reason: str = "", suppress_output: bool = False) -> None:
+    def allow(
+        self,
+        reason: str = "",
+        suppress_output: bool = False,
+        system_message: Optional[str] = None,
+    ) -> None:
         """Allow the tool execution using unified SpecificOutput format.
 
         Args:
             reason (str): Reason for allowing, shown to user
             suppress_output (bool): Hide stdout from transcript mode (default: False)
+            system_message (Optional[str]): Optional warning message shown to the user (default: None)
         """
-        output = self._continue_flow(suppress_output)
+        output = self._continue_flow(suppress_output, system_message)
         output = self._with_specific_output(
             output,
             "PreToolUse",
@@ -71,14 +77,20 @@ class PreToolUseOutput(BaseHookOutput):
         )
         print(json.dumps(output), file=sys.stdout)
 
-    def deny(self, reason: str, suppress_output: bool = False) -> None:
+    def deny(
+        self,
+        reason: str,
+        suppress_output: bool = False,
+        system_message: Optional[str] = None,
+    ) -> None:
         """Deny the tool execution using unified SpecificOutput format.
 
         Args:
             reason (str): Reason for denying, shown to Claude for further reasoning
             suppress_output (bool): Hide stdout from transcript mode (default: False)
+            system_message (Optional[str]): Optional warning message shown to the user (default: None)
         """
-        output = self._continue_flow(suppress_output)
+        output = self._continue_flow(suppress_output, system_message)
         output = self._with_specific_output(
             output,
             "PreToolUse",
@@ -87,14 +99,20 @@ class PreToolUseOutput(BaseHookOutput):
         )
         print(json.dumps(output), file=sys.stdout)
 
-    def ask(self, reason: str, suppress_output: bool = False) -> None:
+    def ask(
+        self,
+        reason: str,
+        suppress_output: bool = False,
+        system_message: Optional[str] = None,
+    ) -> None:
         """Ask user to confirm the tool call using unified SpecificOutput format.
 
         Args:
             reason (str): Reason for asking, shown to user
             suppress_output (bool): Hide stdout from transcript mode (default: False)
+            system_message (Optional[str]): Optional warning message shown to the user (default: None)
         """
-        output = self._continue_flow(suppress_output)
+        output = self._continue_flow(suppress_output, system_message)
         output = self._with_specific_output(
             output,
             "PreToolUse",
@@ -103,14 +121,20 @@ class PreToolUseOutput(BaseHookOutput):
         )
         print(json.dumps(output), file=sys.stdout)
 
-    def halt(self, reason: str, suppress_output: bool = False) -> None:
+    def halt(
+        self,
+        reason: str,
+        suppress_output: bool = False,
+        system_message: Optional[str] = None,
+    ) -> None:
         """Stop all processing immediately.
 
         Args:
             reason (str): Reason for stopping, shown to user
             suppress_output (bool): Hide stdout from transcript mode (default: False)
+            system_message (Optional[str]): Optional warning message shown to the user (default: None)
         """
-        output = self._stop_flow(reason, suppress_output)
+        output = self._stop_flow(reason, suppress_output, system_message)
         print(json.dumps(output), file=sys.stdout)
 
     def exit_success(self, message: Optional[str] = None) -> NoReturn:

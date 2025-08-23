@@ -167,6 +167,33 @@ class TestSessionStartOutput:
             assert result["continue"] is True
             assert result["hookSpecificOutput"]["hookEventName"] == "SessionStart"
             assert result["hookSpecificOutput"]["additionalContext"] == "Loading project context and recent changes"
+            assert "systemMessage" not in result
+
+    def test_add_context_with_system_message(self):
+        """Test add_context method with system message."""
+        data = {
+            "hook_event_name": "SessionStart",
+            "session_id": "test-123",
+            "transcript_path": "/tmp/transcript.json",
+            "source": "startup",
+        }
+
+        context = SessionStartContext(data)
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            context.output.add_context(
+                "Loading project context and recent changes",
+                suppress_output=False,
+                system_message="🚀 Session initialized: Loading project environment"
+            )
+
+            output = mock_stdout.getvalue().strip()
+            result = json.loads(output)
+
+            assert result["continue"] is True
+            assert result["hookSpecificOutput"]["hookEventName"] == "SessionStart"
+            assert result["hookSpecificOutput"]["additionalContext"] == "Loading project context and recent changes"
+            assert result["systemMessage"] == "🚀 Session initialized: Loading project environment"
 
     def test_add_context_with_suppress_output(self):
         """Test add_context method with suppress_output=True."""
