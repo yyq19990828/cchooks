@@ -15,6 +15,7 @@ from cchooks.contexts import (
     SubagentStopContext,
     PreCompactContext,
     SessionStartContext,
+    SessionEndContext,
 )
 from cchooks.exceptions import InvalidHookTypeError, ParseError
 from tests.fixtures.sample_data import (
@@ -26,8 +27,10 @@ from tests.fixtures.sample_data import (
     SAMPLE_PRE_COMPACT_MANUAL,
     SAMPLE_USER_PROMPT_SUBMIT_SIMPLE,
     SAMPLE_SESSION_START_STARTUP,
+    SAMPLE_SESSION_END_CLEAR,
     INVALID_MISSING_HOOK_EVENT,
     INVALID_UNKNOWN_HOOK_EVENT,
+    INVALID_SESSION_END_MISSING_REASON,
 )
 
 
@@ -110,6 +113,14 @@ class TestCreateContextValidInput:
         assert context.hook_event_name == "SessionStart"
         assert context.source == SAMPLE_SESSION_START_STARTUP["source"]
 
+    def test_create_session_end_context(self):
+        """Test creating SessionEndContext from valid input."""
+        test_input = StringIO(json.dumps(SAMPLE_SESSION_END_CLEAR))
+        context = create_context(test_input)
+        assert isinstance(context, SessionEndContext)
+        assert context.hook_event_name == "SessionEnd"
+        assert context.reason == SAMPLE_SESSION_END_CLEAR["reason"]
+
 
 class TestCreateContextInvalidInput:
     """Test create_context() with invalid inputs."""
@@ -128,13 +139,20 @@ class TestCreateContextInvalidInput:
             create_context(test_input)
         assert "Unknown hook event type: UnknownHook" in str(exc_info.value)
 
+    def test_session_end_missing_reason(self):
+        """Test creating SessionEnd context with missing reason field."""
+        test_input = StringIO(json.dumps(INVALID_SESSION_END_MISSING_REASON))
+        with pytest.raises(Exception) as exc_info:  # Should raise HookValidationError
+            create_context(test_input)
+        assert "Missing required SessionEnd fields" in str(exc_info.value)
+
     def test_invalid_json_syntax(self):
         """Test creating context with invalid JSON syntax."""
-        invalid_json = '{"invalid": json,}'
-        test_input = StringIO(json.dumps(invalid_json))
+        invalid_json = '{"invalid": json,}'  # This is invalid JSON
+        test_input = StringIO(invalid_json)
         with pytest.raises(ParseError) as exc_info:
             create_context(test_input)
-        assert "Input must be a JSON object" in str(exc_info.value)
+        assert "Invalid JSON input" in str(exc_info.value)
 
     def test_empty_json_object(self):
         """Test creating context with empty JSON object."""
@@ -207,6 +225,8 @@ class TestCreateContextIntegration:
             ("Stop", SAMPLE_STOP_WITH_HOOK),
             ("SubagentStop", SAMPLE_SUBAGENT_STOP_WITH_HOOK),
             ("PreCompact", SAMPLE_PRE_COMPACT_MANUAL),
+            ("SessionStart", SAMPLE_SESSION_START_STARTUP),
+            ("SessionEnd", SAMPLE_SESSION_END_CLEAR),
         ],
     )
     def test_all_hook_types_integration(self, hook_type, sample_data):

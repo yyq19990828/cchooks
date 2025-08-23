@@ -7,6 +7,10 @@ from cchooks.types import (
 #   ToolName,
     PreCompactTrigger,
     PreToolUsePermissionDecision,
+    SessionStartSource,
+    SessionEndReason,
+    PostToolUseHookSpecificOutput,
+    SessionEndHookSpecificOutput,
 )
 
 
@@ -22,6 +26,9 @@ class TestTypeLiterals:
             "Stop",
             "SubagentStop",
             "PreCompact",
+            "UserPromptSubmit",
+            "SessionStart",
+            "SessionEnd",
         ]
 
         for value in valid_values:
@@ -57,6 +64,20 @@ class TestTypeLiterals:
     def test_decision_type_values(self):
         """Test all valid decision type values."""
         assert PreToolUsePermissionDecision.__args__ == ("allow", "deny", "ask")
+
+    def test_session_start_source_values(self):
+        """Test all valid SessionStartSource values."""
+        valid_sources = ["startup", "resume", "clear"]
+
+        for source in valid_sources:
+            assert source in SessionStartSource.__args__
+
+    def test_session_end_reason_values(self):
+        """Test all valid SessionEndReason values."""
+        valid_reasons = ["clear", "logout", "prompt_input_exit", "other"]
+
+        for reason in valid_reasons:
+            assert reason in SessionEndReason.__args__
 
 
 class TestTypeValidation:
@@ -95,7 +116,7 @@ class TestTypeCompleteness:
     """Test that all expected types are defined."""
 
     def test_all_hook_types_present(self):
-        """Test that all 7 hook types are defined."""
+        """Test that all 9 hook types are defined."""
         expected_hooks = {
             "PreToolUse",
             "PostToolUse",
@@ -105,6 +126,7 @@ class TestTypeCompleteness:
             "PreCompact",
             "UserPromptSubmit",
             "SessionStart",
+            "SessionEnd",
         }
         actual_hooks = set(HookEventType.__args__)
         assert expected_hooks == actual_hooks
@@ -125,3 +147,33 @@ class TestTypeCompleteness:
 #         }
 #         actual_tools = set(ToolName.__args__)
 #         assert expected_tools == actual_tools
+
+
+class TestHookSpecificOutputTypes:
+    """Test hook-specific output type definitions."""
+
+    def test_post_tool_use_hook_specific_output(self):
+        """Test PostToolUseHookSpecificOutput type structure."""
+        # Test that the type accepts the expected fields
+        test_output = {
+            "hookEventName": "PostToolUse",
+            "additionalContext": "Test additional context",
+        }
+        assert test_output["hookEventName"] == "PostToolUse"
+        assert test_output["additionalContext"] == "Test additional context"
+
+    def test_post_tool_use_hook_specific_output_optional_context(self):
+        """Test PostToolUseHookSpecificOutput with optional additionalContext."""
+        test_output = {
+            "hookEventName": "PostToolUse",
+            "additionalContext": None,
+        }
+        assert test_output["hookEventName"] == "PostToolUse"
+        assert test_output["additionalContext"] is None
+
+    def test_session_end_hook_specific_output(self):
+        """Test SessionEndHookSpecificOutput type structure."""
+        test_output = {
+            "hookEventName": "SessionEnd",
+        }
+        assert test_output["hookEventName"] == "SessionEnd"

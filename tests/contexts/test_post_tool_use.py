@@ -245,7 +245,106 @@ class TestPostToolUseOutput:
         context = PostToolUseContext(data)
 
         # Test suppress_output=True
-        context.output.accept(suppress_output=True)
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            context.output.accept(suppress_output=True)
+            output = mock_stdout.getvalue().strip()
+            result = json.loads(output)
+            assert result["suppressOutput"] is True
+
+    def test_add_context_method(self):
+        """Test add_context method provides additional context to Claude."""
+        data = {
+            "hook_event_name": "PostToolUse",
+            "session_id": "test-123",
+            "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
+            "tool_name": "Write",
+            "tool_input": {"file_path": "/tmp/test.py", "content": "print('hello')"},
+            "tool_response": {"success": True, "content": "File written"},
+        }
+
+        context = PostToolUseContext(data)
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            context.output.add_context("This is additional context for Claude")
+            
+            output = mock_stdout.getvalue().strip()
+            result = json.loads(output)
+            
+            assert result["continue"] is True
+            assert result["hookSpecificOutput"]["hookEventName"] == "PostToolUse"
+            assert result["hookSpecificOutput"]["additionalContext"] == "This is additional context for Claude"
+
+    def test_add_context_with_suppress_output(self):
+        """Test add_context method with suppress_output parameter."""
+        data = {
+            "hook_event_name": "PostToolUse",
+            "session_id": "test-123",
+            "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
+            "tool_name": "Write",
+            "tool_input": {"file_path": "/tmp/test.py", "content": "print('hello')"},
+            "tool_response": {"success": True, "content": "File written"},
+        }
+
+        context = PostToolUseContext(data)
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            context.output.add_context("Context", suppress_output=True)
+            
+            output = mock_stdout.getvalue().strip()
+            result = json.loads(output)
+            
+            assert result["continue"] is True
+            assert result["suppressOutput"] is True
+            assert result["hookSpecificOutput"]["additionalContext"] == "Context"
+
+    def test_add_context_empty_string(self):
+        """Test add_context method with empty string."""
+        data = {
+            "hook_event_name": "PostToolUse",
+            "session_id": "test-123",
+            "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
+            "tool_name": "Write",
+            "tool_input": {"file_path": "/tmp/test.py", "content": "print('hello')"},
+            "tool_response": {"success": True, "content": "File written"},
+        }
+
+        context = PostToolUseContext(data)
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            context.output.add_context("")
+            
+            output = mock_stdout.getvalue().strip()
+            result = json.loads(output)
+            
+            assert result["continue"] is True
+            assert result["hookSpecificOutput"]["additionalContext"] == ""
+
+    def test_add_context_long_string(self):
+        """Test add_context method with long string."""
+        data = {
+            "hook_event_name": "PostToolUse",
+            "session_id": "test-123",
+            "transcript_path": "/tmp/transcript.json",
+            "cwd": "/home/user/project",
+            "tool_name": "Write",
+            "tool_input": {"file_path": "/tmp/test.py", "content": "print('hello')"},
+            "tool_response": {"success": True, "content": "File written"},
+        }
+
+        context = PostToolUseContext(data)
+        long_context = "x" * 1000  # 1000 character context
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            context.output.add_context(long_context)
+            
+            output = mock_stdout.getvalue().strip()
+            result = json.loads(output)
+            
+            assert result["continue"] is True
+            assert result["hookSpecificOutput"]["additionalContext"] == long_context
 
 
 class TestPostToolUseRealWorldScenarios:

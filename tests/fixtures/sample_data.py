@@ -213,6 +213,10 @@ def get_all_valid_samples():
         ("SessionStart", SAMPLE_SESSION_START_STARTUP),
         ("SessionStart", SAMPLE_SESSION_START_RESUME),
         ("SessionStart", SAMPLE_SESSION_START_CLEAR),
+        ("SessionEnd", SAMPLE_SESSION_END_CLEAR),
+        ("SessionEnd", SAMPLE_SESSION_END_LOGOUT),
+        ("SessionEnd", SAMPLE_SESSION_END_PROMPT_INPUT_EXIT),
+        ("SessionEnd", SAMPLE_SESSION_END_OTHER),
     ]
 
 
@@ -223,6 +227,8 @@ def get_invalid_samples():
         ("unknown_hook_event", INVALID_UNKNOWN_HOOK_EVENT),
         ("session_start_missing_source", INVALID_SESSION_START_MISSING_SOURCE),
         ("session_start_invalid_source", INVALID_SESSION_START_INVALID_SOURCE),
+        ("session_end_missing_reason", INVALID_SESSION_END_MISSING_REASON),
+        ("session_end_invalid_reason", INVALID_SESSION_END_INVALID_REASON),
     ]
 
 
@@ -246,4 +252,70 @@ SAMPLE_SESSION_START_CLEAR = {
     "session_id": "sess_abc123def456",
     "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
     "source": "clear",
+}
+
+# SessionEnd sample data
+SAMPLE_SESSION_END_CLEAR = {
+    "hook_event_name": "SessionEnd",
+    "session_id": "sess_abc123def456",
+    "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
+    "cwd": "/Users/user/project",
+    "reason": "clear",
+}
+
+SAMPLE_SESSION_END_LOGOUT = {
+    "hook_event_name": "SessionEnd",
+    "session_id": "sess_abc123def456",
+    "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
+    "cwd": "/Users/user/project",
+    "reason": "logout",
+}
+
+SAMPLE_SESSION_END_PROMPT_INPUT_EXIT = {
+    "hook_event_name": "SessionEnd",
+    "session_id": "sess_abc123def456",
+    "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
+    "cwd": "/Users/user/project",
+    "reason": "prompt_input_exit",
+}
+
+SAMPLE_SESSION_END_OTHER = {
+    "hook_event_name": "SessionEnd",
+    "session_id": "sess_abc123def456",
+    "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
+    "cwd": "/Users/user/project",
+    "reason": "other",
+}
+
+# PostToolUse with additional context sample
+SAMPLE_POST_TOOL_USE_WITH_ADDITIONAL_CONTEXT = {
+    "hook_event_name": "PostToolUse",
+    "session_id": "sess_abc123def456",
+    "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
+    "cwd": "/Users/user/project",
+    "tool_name": "Write",
+    "tool_input": {
+        "file_path": "/Users/user/project/src/main.py",
+        "content": "def hello():\n    print('Hello, World!')\n",
+    },
+    "tool_response": {
+        "success": True,
+        "content": "File written successfully to /Users/user/project/src/main.py",
+    },
+}
+
+# Invalid SessionEnd data for testing error handling
+INVALID_SESSION_END_MISSING_REASON = {
+    "hook_event_name": "SessionEnd",
+    "session_id": "sess_abc123def456",
+    "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
+    "cwd": "/Users/user/project",
+}
+
+INVALID_SESSION_END_INVALID_REASON = {
+    "hook_event_name": "SessionEnd",
+    "session_id": "sess_abc123def456",
+    "transcript_path": "/Users/user/.claude/transcript_20240716_143022.json",
+    "cwd": "/Users/user/project",
+    "reason": "invalid_reason",
 }

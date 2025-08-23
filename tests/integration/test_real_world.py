@@ -739,11 +739,12 @@ Development Environment:
             assert hasattr(context, "hook_event_name")
 
             # For SessionStart, test context loading
-            assert isinstance(context, SessionStartContext)
-            if step["hook"] == "SessionStart" and step["expected"] == "load_context":
-                with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-                    context.output.add_context(step["context"])
-                    output = mock_stdout.getvalue().strip()
-                    result = json.loads(output)
-                    assert result["continue"] is True
-                    assert result["hookSpecificOutput"]["hookEventName"] == "SessionStart"
+            if step["hook"] == "SessionStart":
+                assert isinstance(context, SessionStartContext)
+                if step["expected"] == "load_context":
+                    with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+                        context.output.add_context(step["context"])
+                        output = mock_stdout.getvalue().strip()
+                        result = json.loads(output)
+                        assert result["continue"] is True
+                        assert result["hookSpecificOutput"]["hookEventName"] == "SessionStart"
