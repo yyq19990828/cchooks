@@ -26,7 +26,7 @@ A lightweight Python Toolkit that makes building Claude Code hooks as simple as 
 - **One-liner setup**: `create_context()` handles all the boilerplate
 - **Zero config**: Automatic JSON parsing and validation from stdin
 - **Smart detection**: Automatically figures out which hook you're building
-- **8 hook types**: Support for all Claude Code hook events including SessionStart
+- **9 hook types**: Support for all Claude Code hook events including SessionStart and SessionEnd
 - **Two modes**: Simple exit codes OR advanced JSON control
 - **Type-safe**: Full type hints and IDE autocompletion
 
@@ -199,6 +199,57 @@ c.output.exit_success()
 
 > **Note**: SessionStart hooks cannot block Claude processing. Any stdout output from exit code 0 is automatically added to the session context (not the transcript).
 
+### SessionEnd (Cleanup Handler)
+
+Perform cleanup tasks when Claude Code session ends:
+
+```python
+#!/usr/bin/env python3
+import os
+import json
+from datetime import datetime
+from cchooks import create_context, SessionEndContext
+
+c = create_context()
+
+assert isinstance(c, SessionEndContext)
+
+# Log session end information
+session_info = {
+    "session_id": c.session_id,
+    "end_time": datetime.now().isoformat(),
+    "reason": c.reason,
+    "transcript_path": c.transcript_path
+}
+
+# Save session summary
+log_file = f"/tmp/claude-sessions.log"
+with open(log_file, "a") as f:
+    f.write(json.dumps(session_info) + "\n")
+
+# Perform cleanup based on session end reason
+if c.reason == "clear":
+    # Clean up temporary files
+    temp_dir = f"/tmp/claude-temp-{c.session_id}"
+    if os.path.exists(temp_dir):
+        os.system(f"rm -rf {temp_dir}")
+        print(f"Cleaned up temporary directory: {temp_dir}")
+elif c.reason == "logout":
+    # Save user preferences or session state
+    print(f"User logged out - session {c.session_id} ended")
+elif c.reason == "prompt_input_exit":
+    # Handle manual exit
+    print(f"Manual exit - session {c.session_id} terminated")
+else:
+    # Other reasons
+    print(f"Session {c.session_id} ended: {c.reason}")
+
+# Always exit with success - cleanup completed
+c.output.exit_success("Session cleanup completed")
+```
+
+> **Note**: SessionEnd hooks cannot block session termination since the session is already ending. They are ideal for cleanup tasks, logging, and saving state. Success output is logged to debug only, while errors are shown to users via stderr.
+
 ### PreCompact (Custom Instructions)
 
 Add custom compaction rules:
@@ -284,6 +335,7 @@ except Exception as e:
 | **UserPromptSubmit** | `c.prompt`                           | Filter and enrich prompts    |
 | **PreCompact**       | `c.trigger`, `c.custom_instructions` | Modify transcript compaction |
 | **SessionStart**     | `c.source`                           | Load development context     |
+| **SessionEnd**       | `c.reason`                           | Perform cleanup tasks        |
 
 ### Simple Mode (Exit Codes)
 
