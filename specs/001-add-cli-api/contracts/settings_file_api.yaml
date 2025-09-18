@@ -1,0 +1,201 @@
+# Settings File API Contract
+# Defines the interface for .claude/settings.json manipulation
+
+api:
+  SettingsManager:
+    description: "Core API for managing Claude Code settings files"
+
+    methods:
+      discover_settings_files:
+        description: "Find all accessible settings files in precedence order"
+        parameters: []
+        returns:
+          type: "List[SettingsFile]"
+          description: "Settings files ordered by precedence (project -> user)"
+        raises:
+          - PermissionError: "When settings directories are not accessible"
+
+      load_settings:
+        description: "Load and parse a settings file"
+        parameters:
+          - path:
+              type: "Path"
+              description: "Path to settings file"
+        returns:
+          type: "SettingsFile"
+          description: "Parsed settings file object"
+        raises:
+          - FileNotFoundError: "When settings file doesn't exist"
+          - JSONDecodeError: "When settings file has invalid JSON"
+          - PermissionError: "When file is not readable"
+
+      save_settings:
+        description: "Save settings to file with optional backup"
+        parameters:
+          - settings:
+              type: "SettingsFile"
+              description: "Settings object to save"
+          - create_backup:
+              type: "bool"
+              default: true
+              description: "Whether to create backup before saving"
+        returns:
+          type: "SaveResult"
+          description: "Result of save operation"
+        raises:
+          - PermissionError: "When file is not writable"
+          - DiskSpaceError: "When insufficient disk space"
+
+      add_hook:
+        description: "Add hook configuration to settings"
+        parameters:
+          - settings:
+              type: "SettingsFile"
+              description: "Target settings file"
+          - hook:
+              type: "HookConfiguration"
+              description: "Hook configuration to add"
+        returns:
+          type: "ModificationResult"
+          description: "Result of add operation"
+        raises:
+          - ValidationError: "When hook configuration is invalid"
+          - DuplicateHookError: "When identical hook already exists"
+
+      update_hook:
+        description: "Update existing hook configuration"
+        parameters:
+          - settings:
+              type: "SettingsFile"
+              description: "Target settings file"
+          - event_type:
+              type: "HookEventType"
+              description: "Event type of hook to update"
+          - index:
+              type: "int"
+              description: "Index of hook within event type"
+          - updates:
+              type: "Dict[str, Any]"
+              description: "Fields to update"
+        returns:
+          type: "ModificationResult"
+          description: "Result of update operation"
+        raises:
+          - IndexError: "When hook index doesn't exist"
+          - ValidationError: "When updated configuration is invalid"
+
+      remove_hook:
+        description: "Remove hook configuration from settings"
+        parameters:
+          - settings:
+              type: "SettingsFile"
+              description: "Target settings file"
+          - event_type:
+              type: "HookEventType"
+              description: "Event type of hook to remove"
+          - index:
+              type: "int"
+              description: "Index of hook within event type"
+        returns:
+          type: "ModificationResult"
+          description: "Result of remove operation"
+        raises:
+          - IndexError: "When hook index doesn't exist"
+
+      validate_hook:
+        description: "Validate hook configuration against cchooks types"
+        parameters:
+          - hook:
+              type: "HookConfiguration"
+              description: "Hook configuration to validate"
+        returns:
+          type: "ValidationResult"
+          description: "Detailed validation result"
+        raises: []
+
+  HookValidator:
+    description: "Validation service for hook configurations"
+
+    methods:
+      validate_event_type:
+        description: "Validate hook event type"
+        parameters:
+          - event_type:
+              type: "str"
+              description: "Event type to validate"
+        returns:
+          type: "ValidationResult"
+          description: "Validation result for event type"
+
+      validate_command:
+        description: "Validate hook command"
+        parameters:
+          - command:
+              type: "str"
+              description: "Command to validate"
+          - event_type:
+              type: "HookEventType"
+              description: "Context event type"
+        returns:
+          type: "ValidationResult"
+          description: "Validation result for command"
+
+      validate_matcher:
+        description: "Validate tool matcher pattern"
+        parameters:
+          - matcher:
+              type: "str"
+              description: "Matcher pattern to validate"
+          - event_type:
+              type: "HookEventType"
+              description: "Context event type"
+        returns:
+          type: "ValidationResult"
+          description: "Validation result for matcher"
+
+      validate_complete_hook:
+        description: "Comprehensive hook validation"
+        parameters:
+          - hook:
+              type: "HookConfiguration"
+              description: "Complete hook configuration"
+        returns:
+          type: "ValidationResult"
+          description: "Comprehensive validation result"
+
+data_types:
+  SaveResult:
+    properties:
+      success: {type: "bool"}
+      backup_path: {type: "Optional[Path]"}
+      original_size: {type: "int"}
+      new_size: {type: "int"}
+
+  ModificationResult:
+    properties:
+      success: {type: "bool"}
+      modified_hook: {type: "HookConfiguration"}
+      hook_count_before: {type: "int"}
+      hook_count_after: {type: "int"}
+      validation_warnings: {type: "List[ValidationWarning]"}
+
+error_handling:
+  ValidationError:
+    description: "Raised when hook configuration is invalid"
+    properties:
+      field_name: {type: "str"}
+      error_code: {type: "str"}
+      message: {type: "str"}
+      suggested_fix: {type: "Optional[str]"}
+
+  DuplicateHookError:
+    description: "Raised when attempting to add duplicate hook"
+    properties:
+      existing_hook: {type: "HookConfiguration"}
+      existing_index: {type: "int"}
+
+  DiskSpaceError:
+    description: "Raised when insufficient disk space for operation"
+    properties:
+      required_bytes: {type: "int"}
+      available_bytes: {type: "int"}

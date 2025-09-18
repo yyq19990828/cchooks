@@ -1,0 +1,453 @@
+# CLI Commands Contract Specification
+# This file defines the interface contracts for all CLI commands
+#
+# CRITICAL CONSTRAINTS:
+# - CLI tools MUST only modify the "hooks" section of settings.json
+# - CLI tools MUST NOT add, modify, or remove any other top-level fields
+# - Hook objects MUST only contain: "type", "command", "timeout" (optional)
+# - "type" field is ALWAYS "command" (as per Claude Code specification)
+# - NO additional fields allowed in hook objects
+
+commands:
+  cc_addhook:
+    description: "Add a new hook configuration to settings file"
+    arguments:
+      required:
+        - event:
+            type: "string"
+            enum: ["PreToolUse", "PostToolUse", "Notification", "UserPromptSubmit", "Stop", "SubagentStop", "PreCompact", "SessionStart", "SessionEnd"]
+            description: "Hook event type"
+      required_one_of:
+        - command:
+            type: "string"
+            description: "Shell command to execute"
+        - script:
+            type: "string"
+            description: "Path to Python script file"
+      optional:
+        - matcher:
+            type: "string"
+            description: "Tool name pattern (required for PreToolUse/PostToolUse)"
+        - timeout:
+            type: "integer"
+            minimum: 1
+            maximum: 3600
+            description: "Execution timeout in seconds"
+        - level:
+            type: "string"
+            enum: ["project", "user"]
+            default: "project"
+            description: "Settings level to target"
+        - format:
+            type: "string"
+            enum: ["json", "table", "quiet"]
+            default: "table"
+            description: "Output format"
+        - dry-run:
+            type: "boolean"
+            default: false
+            description: "Preview changes without applying"
+        - backup:
+            type: "boolean"
+            default: true
+            description: "Create backup before changes"
+        - auto-chmod:
+            type: "boolean"
+            default: true
+            description: "Automatically make script executable (when using --script)"
+    output:
+      success:
+        type: "object"
+        properties:
+          success: {type: "boolean", value: true}
+          message: {type: "string"}
+          data:
+            type: "object"
+            properties:
+              hook:
+                type: "object"
+                properties:
+                  type: {type: "string", value: "command"}
+                  command: {type: "string"}
+                  timeout: {type: "integer", optional: true}
+                additionalProperties: false
+              settings_file: {type: "string"}
+              backup_created: {type: "boolean"}
+          warnings: {type: "array"}
+          errors: {type: "array"}
+      error:
+        type: "object"
+        properties:
+          success: {type: "boolean", value: false}
+          message: {type: "string"}
+          errors: {type: "array"}
+    exit_codes:
+      0: "Success"
+      1: "Validation error or user error"
+      2: "System error (file permissions, etc.)"
+
+  cc_updatehook:
+    description: "Update existing hook configuration"
+    arguments:
+      required:
+        - event:
+            type: "string"
+            enum: ["PreToolUse", "PostToolUse", "Notification", "UserPromptSubmit", "Stop", "SubagentStop", "PreCompact", "SessionStart", "SessionEnd"]
+        - index:
+            type: "integer"
+            minimum: 0
+            description: "Index of hook to update (from cc_listhooks)"
+      optional:
+        - command: {type: "string"}
+        - matcher: {type: "string"}
+        - timeout: {type: "integer", minimum: 1, maximum: 3600}
+        - level: {type: "string", enum: ["project", "user"], default: "project"}
+        - format: {type: "string", enum: ["json", "table", "quiet"], default: "table"}
+        - dry-run: {type: "boolean", default: false}
+        - backup: {type: "boolean", default: true}
+    output:
+      success: {$ref: "#/commands/cc_addhook/output/success"}
+      error: {$ref: "#/commands/cc_addhook/output/error"}
+    exit_codes: {$ref: "#/commands/cc_addhook/exit_codes"}
+
+  cc_removehook:
+    description: "Remove hook configuration from settings"
+    arguments:
+      required:
+        - event:
+            type: "string"
+            enum: ["PreToolUse", "PostToolUse", "Notification", "UserPromptSubmit", "Stop", "SubagentStop", "PreCompact", "SessionStart", "SessionEnd"]
+        - index:
+            type: "integer"
+            minimum: 0
+            description: "Index of hook to remove (from cc_listhooks)"
+      optional:
+        - level: {type: "string", enum: ["project", "user"], default: "project"}
+        - format: {type: "string", enum: ["json", "table", "quiet"], default: "table"}
+        - dry-run: {type: "boolean", default: false}
+        - backup: {type: "boolean", default: true}
+    output:
+      success:
+        type: "object"
+        properties:
+          success: {type: "boolean", value: true}
+          message: {type: "string"}
+          data:
+            type: "object"
+            properties:
+              removed_hook:
+                type: "object"
+                properties:
+                  type: {type: "string", value: "command"}
+                  command: {type: "string"}
+                  timeout: {type: "integer", optional: true}
+                additionalProperties: false
+              settings_file: {type: "string"}
+              backup_created: {type: "boolean"}
+          warnings: {type: "array"}
+          errors: {type: "array"}
+      error: {$ref: "#/commands/cc_addhook/output/error"}
+    exit_codes: {$ref: "#/commands/cc_addhook/exit_codes"}
+
+  cc_listhooks:
+    description: "List configured hooks"
+    arguments:
+      optional:
+        - event:
+            type: "string"
+            enum: ["PreToolUse", "PostToolUse", "Notification", "UserPromptSubmit", "Stop", "SubagentStop", "PreCompact", "SessionStart", "SessionEnd"]
+            description: "Filter by event type"
+        - level:
+            type: "string"
+            enum: ["project", "user", "all"]
+            default: "all"
+            description: "Settings level to query"
+        - format:
+            type: "string"
+            enum: ["json", "table", "yaml"]
+            default: "table"
+            description: "Output format"
+    output:
+      success:
+        type: "object"
+        properties:
+          success: {type: "boolean", value: true}
+          message: {type: "string"}
+          data:
+            type: "object"
+            properties:
+              hooks: {type: "array"}
+              total_count: {type: "integer"}
+              by_event: {type: "object"}
+          warnings: {type: "array"}
+          errors: {type: "array"}
+      error: {$ref: "#/commands/cc_addhook/output/error"}
+    exit_codes: {$ref: "#/commands/cc_addhook/exit_codes"}
+
+  cc_validatehooks:
+    description: "Validate hook configurations"
+    arguments:
+      optional:
+        - level:
+            type: "string"
+            enum: ["project", "user", "all"]
+            default: "all"
+            description: "Settings level to validate"
+        - format:
+            type: "string"
+            enum: ["json", "table"]
+            default: "table"
+            description: "Output format"
+        - strict:
+            type: "boolean"
+            default: false
+            description: "Treat warnings as errors"
+    output:
+      success:
+        type: "object"
+        properties:
+          success: {type: "boolean", value: true}
+          message: {type: "string"}
+          data:
+            type: "object"
+            properties:
+              valid_hooks: {type: "integer"}
+              invalid_hooks: {type: "integer"}
+              warnings: {type: "integer"}
+              validation_results: {type: "array"}
+          warnings: {type: "array"}
+          errors: {type: "array"}
+      error: {$ref: "#/commands/cc_addhook/output/error"}
+    exit_codes:
+      0: "All hooks valid"
+      1: "Validation warnings (or errors in strict mode)"
+      2: "Validation errors or system errors"
+
+  cc_generatehook:
+    description: "Generate Python hook script from predefined templates"
+    arguments:
+      required:
+        - type:
+            type: "string"
+            enum: ["security-guard", "auto-formatter", "auto-linter", "git-auto-commit", "permission-logger", "desktop-notifier", "task-manager", "prompt-filter", "context-loader", "cleanup-handler"]
+            description: "Hook template type"
+        - event:
+            type: "string"
+            enum: ["PreToolUse", "PostToolUse", "Notification", "UserPromptSubmit", "Stop", "SubagentStop", "PreCompact", "SessionStart", "SessionEnd"]
+            description: "Hook event type"
+        - output:
+            type: "string"
+            description: "Output file path for generated script"
+      optional:
+        - add-to-settings:
+            type: "boolean"
+            default: false
+            description: "Automatically add generated script to settings"
+        - level:
+            type: "string"
+            enum: ["project", "user"]
+            default: "project"
+            description: "Settings level (when add-to-settings is true)"
+        - matcher:
+            type: "string"
+            description: "Tool matcher pattern (for PreToolUse/PostToolUse)"
+        - customization:
+            type: "object"
+            description: "Template-specific customization options"
+        - format:
+            type: "string"
+            enum: ["json", "table", "quiet"]
+            default: "table"
+            description: "Output format"
+        - overwrite:
+            type: "boolean"
+            default: false
+            description: "Overwrite existing file"
+    output:
+      success:
+        type: "object"
+        properties:
+          success: {type: "boolean", value: true}
+          message: {type: "string"}
+          data:
+            type: "object"
+            properties:
+              generated_file: {type: "string"}
+              template_type: {type: "string"}
+              event_type: {type: "string"}
+              executable: {type: "boolean"}
+              added_to_settings: {type: "boolean"}
+          warnings: {type: "array"}
+          errors: {type: "array"}
+      error:
+        type: "object"
+        properties:
+          success: {type: "boolean", value: false}
+          message: {type: "string"}
+          errors: {type: "array"}
+    exit_codes:
+      0: "Script generated successfully"
+      1: "Template or validation errors"
+      2: "File system errors"
+
+  cc_registertemplate:
+    description: "Register a new custom hook template"
+    arguments:
+      required:
+        - name:
+            type: "string"
+            description: "Unique template name/ID"
+      required_one_of:
+        - file:
+            type: "string"
+            description: "Path to Python file containing template class"
+        - class:
+            type: "string"
+            description: "Fully qualified class name (module.ClassName)"
+      optional:
+        - description:
+            type: "string"
+            description: "Template description"
+        - events:
+            type: "array"
+            items:
+              type: "string"
+              enum: ["PreToolUse", "PostToolUse", "Notification", "UserPromptSubmit", "Stop", "SubagentStop", "PreCompact", "SessionStart", "SessionEnd"]
+            description: "Supported hook events"
+        - version:
+            type: "string"
+            default: "1.0.0"
+            description: "Template version"
+        - global:
+            type: "boolean"
+            default: false
+            description: "Register globally (user-level) vs project-level"
+        - force:
+            type: "boolean"
+            default: false
+            description: "Overwrite existing template"
+        - format:
+            type: "string"
+            enum: ["json", "table", "quiet"]
+            default: "table"
+            description: "Output format"
+    output:
+      success:
+        type: "object"
+        properties:
+          success: {type: "boolean", value: true}
+          message: {type: "string"}
+          data:
+            type: "object"
+            properties:
+              template_id: {type: "string"}
+              template_name: {type: "string"}
+              supported_events: {type: "array"}
+              version: {type: "string"}
+              source: {type: "string"}
+              registry_location: {type: "string"}
+          warnings: {type: "array"}
+          errors: {type: "array"}
+      error:
+        type: "object"
+        properties:
+          success: {type: "boolean", value: false}
+          message: {type: "string"}
+          errors: {type: "array"}
+    exit_codes:
+      0: "Template registered successfully"
+      1: "Template validation or registration errors"
+      2: "File system or import errors"
+
+  cc_listtemplates:
+    description: "List available hook templates"
+    arguments:
+      optional:
+        - event:
+            type: "string"
+            enum: ["PreToolUse", "PostToolUse", "Notification", "UserPromptSubmit", "Stop", "SubagentStop", "PreCompact", "SessionStart", "SessionEnd"]
+            description: "Filter by supported event type"
+        - source:
+            type: "string"
+            enum: ["builtin", "user", "file", "plugin", "all"]
+            default: "all"
+            description: "Filter by template source"
+        - format:
+            type: "string"
+            enum: ["json", "table", "yaml"]
+            default: "table"
+            description: "Output format"
+        - show-config:
+            type: "boolean"
+            default: false
+            description: "Show customization options"
+    output:
+      success:
+        type: "object"
+        properties:
+          success: {type: "boolean", value: true}
+          message: {type: "string"}
+          data:
+            type: "object"
+            properties:
+              templates: {type: "array"}
+              total_count: {type: "integer"}
+              by_source: {type: "object"}
+              by_event: {type: "object"}
+          warnings: {type: "array"}
+          errors: {type: "array"}
+      error:
+        type: "object"
+        properties:
+          success: {type: "boolean", value: false}
+          message: {type: "string"}
+          errors: {type: "array"}
+    exit_codes:
+      0: "Templates listed successfully"
+      1: "No templates found or filter errors"
+      2: "System errors"
+
+  cc_unregistertemplate:
+    description: "Unregister a custom hook template"
+    arguments:
+      required:
+        - name:
+            type: "string"
+            description: "Template name/ID to unregister"
+      optional:
+        - global:
+            type: "boolean"
+            default: false
+            description: "Unregister from global (user-level) registry"
+        - force:
+            type: "boolean"
+            default: false
+            description: "Force unregister without confirmation"
+        - format:
+            type: "string"
+            enum: ["json", "table", "quiet"]
+            default: "table"
+            description: "Output format"
+    output:
+      success:
+        type: "object"
+        properties:
+          success: {type: "boolean", value: true}
+          message: {type: "string"}
+          data:
+            type: "object"
+            properties:
+              unregistered_template: {type: "string"}
+              registry_location: {type: "string"}
+          warnings: {type: "array"}
+          errors: {type: "array"}
+      error:
+        type: "object"
+        properties:
+          success: {type: "boolean", value: false}
+          message: {type: "string"}
+          errors: {type: "array"}
+    exit_codes:
+      0: "Template unregistered successfully"
+      1: "Template not found or unregister errors"
+      2: "System errors"
