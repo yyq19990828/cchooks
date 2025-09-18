@@ -176,6 +176,48 @@ if isinstance(c, PreToolUseContext):
 - **简单模式**: 退出码 (0=成功, 1=非阻塞错误, 2=阻塞错误)
 - **高级模式**: 包含 `continue`, `decision`, `reason` 字段的JSON
 
+## CLI开发指南
+
+### 命令结构约定
+- **命名**: 遵循 `cchooks-*` 模式 (例如: `cchooks-init`, `cchooks-validate`)
+- **标志**: 支持短格式 (`-h`) 和长格式 (`--help`)
+- **输入**: 支持文件输入和stdin输入
+- **配置**: 集成 `.claude/settings.json` 配置文件
+
+### CLI输出格式
+```python
+# JSON格式 (程序化使用)
+import json
+result = {"status": "success", "data": {...}, "warnings": [...]}
+print(json.dumps(result))
+
+# 表格/文本格式 (人类可读)
+print(f"✅ 成功创建钩子: {hook_name}")
+print(f"📁 位置: {hook_path}")
+```
+
+### 错误处理标准
+- **退出码 0**: 成功完成
+- **退出码 1**: 非阻塞警告 (操作继续)
+- **退出码 2**: 阻塞错误 (操作停止)
+- **错误消息**: 提供可操作的指导
+
+### 配置集成模式
+```python
+# 读取 .claude/settings.json
+from cchooks.config import load_claude_settings
+
+settings = load_claude_settings()
+hooks_config = settings.get("hooks", {})
+```
+
+### CLI工具开发流程
+1. **TDD**: 先写CLI命令测试
+2. **类型安全**: 完整的参数类型提示
+3. **工厂模式**: 复用现有钩子上下文
+4. **文档**: 内置帮助和示例
+5. **性能**: 最小化启动开销
+
 ## Change Log (Changelog)
 
 ### 2025-09-18 16:35:48 - AI上下文初始化

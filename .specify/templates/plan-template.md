@@ -47,7 +47,49 @@
 ## Constitution Check
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+### Article I (Library-First Development):
+- [ ] Feature starts as standalone library with clear interfaces
+- [ ] Self-contained, independently testable with type hints
+- [ ] Clear purpose defined (no organizational-only libraries)
+- [ ] Extends cchooks package foundational hook types
+
+### Article II (CLI Interface Excellence):
+- [ ] Functionality exposed via CLI commands
+- [ ] Text-based protocol: stdin/args → stdout, errors → stderr
+- [ ] Supports both JSON and human-readable formats
+- [ ] Claude Code integration compatibility
+- [ ] .claude/settings.json configuration support
+
+### Article III (Test-First Development):
+- [ ] TDD mandatory: Tests written → User approved → Tests fail → Implement
+- [ ] Red-Green-Refactor cycle enforced
+- [ ] All 9 hook types have comprehensive test coverage
+- [ ] Edge cases and real-world scenarios included
+
+### Article IV (Hook Integration Testing):
+- [ ] New hook type contract tests planned
+- [ ] Hook context validation changes tested
+- [ ] Claude Code integration compatibility verified
+- [ ] Cross-hook type interactions tested
+- [ ] CLI tool end-to-end workflows covered
+
+### Article V (Type Safety & Observability):
+- [ ] Complete type hints for all public APIs
+- [ ] Structured logging for hook execution
+- [ ] Hook validation errors provide field-specific messages
+- [ ] Supports both simple (exit codes) and advanced (JSON) output modes
+
+### Article VI (Python Package Standards):
+- [ ] Follows src/ layout, pyproject.toml configuration
+- [ ] Semantic versioning maintained
+- [ ] Backwards compatibility for hook interfaces preserved
+- [ ] Breaking changes include migration guides
+
+### Article VII (Simplicity & Developer Experience):
+- [ ] YAGNI principles applied
+- [ ] Minimal external dependencies (zero runtime deps maintained)
+- [ ] Factory patterns (create_context()) preserved
+- [ ] Documentation accessible to both library and CLI users
 
 ## Project Structure
 
@@ -208,4 +250,4 @@ ios/ or android/
 - [ ] Complexity deviations documented
 
 ---
-*Based on Constitution v2.1.1 - See `/memory/constitution.md`*
+*Based on Constitution v1.0.0 - See `/memory/constitution.md`*
