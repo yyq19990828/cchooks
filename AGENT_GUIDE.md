@@ -1,422 +1,186 @@
-# AGENT_GUIDE.md
+# Claude Code Hooks Library (cchooks)
 
-This file provides guidance for AI agents working with code in this repository.
+## Change Log (最新变更日志)
 
-## Project Overview
+**2025-09-18 16:35:48** - AI上下文初始化完成
+- 创建了完整的项目AI上下文索引 (`.claude/index.json`)
+- 更新了根级CLAUDE.md文档，添加模块结构图和导航
+- 扫描覆盖率: 90% (38/42文件)
+- 识别了9种钩子类型和完整的测试套件
 
-This is a Python library (`cchooks`) for developing Claude Code hooks - user-defined shell commands that execute at various points in Claude Code's lifecycle. The library provides type-safe interfaces and utilities for all 8 hook types.
+---
 
-## Architecture
+## Project Vision
 
-The codebase is organized into:
+cchooks 是一个为 Claude Code 开发钩子的 Python 库。钩子是用户定义的 shell 命令，在 Claude Code 生命周期的各个关键点执行。该库为所有9种钩子类型提供类型安全的接口和实用工具。
 
-- **Core Types**: `src/cchooks/types.py` - Type definitions and literals for hook events, tools, and decisions
-- **Base Classes**: `src/cchooks/contexts/base.py` - Abstract base classes for contexts and outputs
-- **Hook Contexts**: Individual files in `src/cchooks/contexts/` for each hook type
-- **Utilities**: `src/cchooks/utils.py` - JSON parsing and validation helpers
-- **Exceptions**: `src/cchooks/exceptions.py` - Custom exception hierarchy
+## Architecture Overview
 
-## Hook Types
+该库围绕类型安全的上下文系统构建，每种钩子类型都有专门的上下文和输出类。核心架构包括：
 
-1. **PreToolUse**: Runs before tool execution, can approve/block tools
-2. **PostToolUse**: Runs after tool execution, can only provide feedback
-3. **Notification**: Processes notifications, no decision control
-4. **Stop**: Controls Claude's stopping behavior
-5. **SubagentStop**: Controls subagent stopping behavior
-6. **PreCompact**: Runs before transcript compaction
-7. **UserPromptSubmit**: After user prompt submission
-8. **SessionStart**: When Claude Code starts or resumes sessions
-9. **SessionEnd**: When Claude Code session ends
+- **类型系统**: 完整的 Claude Code 钩子类型定义
+- **基础类**: 所有钩子上下文的抽象基类
+- **上下文实现**: 9种钩子类型的具体实现
+- **工厂模式**: 自动钩子类型检测和上下文创建
+- **输出处理**: 统一的JSON输出和简单模式支持
 
-## Essential Commands
+## Module Structure Diagram
 
-### Testing
-- `make test` - Run all tests with coverage
-- `make test-quick` - Run tests without coverage (faster)
-- `uv run pytest tests/contexts/test_pre_tool_use.py -v` - Run specific test file
-- `uv run pytest tests/contexts/test_pre_tool_use.py::test_valid_context_creation -v` - Run single test
+```mermaid
+graph TD
+    A["cchooks (Root)"] --> B["src/cchooks/"];
+    A --> C["tests/"];
+    A --> D["docs/"];
 
-### Code Quality
-- `make check` - Run all checks (lint, type-check, format, test)
-- `make lint` - Lint code (ruff check)
-- `make lint-fix` - Auto-fix linting issues
-- `make format` - Format code (ruff format)
-- `make type-check` - Type checking (mypy)
+    B --> E["__init__.py (Factory)"];
+    B --> F["types.py"];
+    B --> G["contexts/"];
+    B --> H["utils.py"];
+    B --> I["exceptions.py"];
 
-### Build & Setup
-- `make setup` - Install dependencies
-- `uv sync` - Alternative dependency install
-- `make build` - Build package
-- `make clean` - Clean build artifacts
+    G --> J["base.py"];
+    G --> K["pre_tool_use.py"];
+    G --> L["post_tool_use.py"];
+    G --> M["notification.py"];
+    G --> N["user_prompt_submit.py"];
+    G --> O["stop.py"];
+    G --> P["subagent_stop.py"];
+    G --> Q["pre_compact.py"];
+    G --> R["session_start.py"];
+    G --> S["session_end.py"];
 
-## Code Style Guidelines
+    C --> T["contexts/"];
+    C --> U["fixtures/"];
+    C --> V["integration/"];
 
-### Python Conventions
-- **Type hints**: Required for all function signatures and public attributes
-- **Imports**: Group imports (stdlib, third-party, local) with blank lines
-- **Naming**:
-  - Classes: PascalCase (PreToolUseContext)
-  - Functions/Methods: snake_case (validate_fields)
-  - Constants: UPPER_SNAKE_CASE (HOOK_TYPE_MAP)
-  - Private: _single_underscore
-
-### Error Handling
-- Use custom exceptions from `cchooks.exceptions`
-- Validate input data in context constructors
-- Provide clear error messages with field names
-- Use `HookValidationError` for missing required fields
-
-### Testing Patterns
-- Test files: `test_*.py` in `tests/` directory
-- Test classes: `Test*`
-- Test methods: `test_*`
-- Use pytest fixtures for sample data
-- Mock stdin/stdout for I/O testing
-
-### Project Structure
-- Main module: `src/cchooks/`
-- Contexts: `src/cchooks/contexts/` (one file per hook type)
-- Tests: Mirror source structure in `tests/`
-- Type definitions: `src/cchooks/types.py`
-
-### Hook Development
-- Each hook has dedicated Context and Output classes
-- Inherit from BaseHookContext/BaseHookOutput
-- Validate required fields in constructor
-- Use factory function `create_context()` for instantiation
-- Follow JSON input/output patterns for Claude Code integration
-
-## Input/Output Patterns
-- **Simple Mode**: Exit codes (0=success, 1=non-blocking, 2=blocking)
-- **Advanced Mode**: JSON with `continue`, `decision`, `reason` fields
-
-## Usage Pattern
-
-```python
-from cchooks import create_context
-
-# Read from stdin automatically
-c = create_context()
-
-# Type-specific handling
-if isinstance(c, PreToolUseContext):
-    if c.tool_name == "Write" and "password" in c.tool_input.get("file_path", ""):
-        c.output.simple_block("Refusing to write to password file")
-    else:
-        c.output.simple_approve()
+    click E "./src/cchooks/__init__.py" "主入口点和工厂函数"
+    click F "./src/cchooks/types.py" "类型定义和字面量"
+    click J "./src/cchooks/contexts/base.py" "基础抽象类"
+    click K "./src/cchooks/contexts/pre_tool_use.py" "工具执行前钩子"
 ```
 
-## Key Files
+## Module Index
 
-- `src/cchooks/__init__.py`: Main entry point and factory function
-- `src/cchooks/contexts/pre_tool_use.py`: Most complex hook with approval decisions
-- `src/cchooks/types.py`: Complete type system for Claude Code integration
-- `docs/what-is-cc-hook.md`: Comprehensive documentation of Claude Code hooks
+| 模块 | 路径 | 责任 | 关键文件 |
+|------|------|------|----------|
+| **Core** | `src/cchooks/` | 主库模块，提供9种钩子上下文 | `__init__.py`, `types.py` |
+| **Contexts** | `src/cchooks/contexts/` | 钩子上下文实现 | `base.py`, `pre_tool_use.py` |
+| **Tests** | `tests/` | 完整测试套件，包括单元和集成测试 | `conftest.py`, `contexts/` |
+| **Documentation** | `docs/` | 用户和开发者文档 | `what-is-cc-hook.md` |
 
-## Development Best Practices
+## Running and Development
 
-- When generating git commit messages, follow patterns like "feat:", "fix:", "docs:", "refactor:" and other best practices
-- Use type hints throughout the codebase
-- Write tests for all new functionality
-- Run `make check` before committing changes
-- Follow existing naming conventions and code style
-- Document public APIs with clear docstrings
-
-## Project Structure
-
-```
-src/cchooks/
-├── __init__.py           # Main factory function create_context()
-├── types.py              # Type definitions and literals
-├── exceptions.py         # Custom exception classes
-├── utils.py              # JSON parsing utilities
-└── contexts/
-    ├── __init__.py       # Context exports
-    ├── base.py          # Abstract base classes
-    ├── pre_tool_use.py   # Pre-tool execution decisions
-    ├── post_tool_use.py  # Post-tool execution feedback
-    ├── notification.py   # Notification processing
-    ├── stop.py          # Stop behavior control
-    ├── subagent_stop.py  # Subagent stop control
-    ├── pre_compact.py    # Pre-compaction processing
-    ├── user_prompt_submit.py  # User prompt submission
-    └── session_start.py  # Session start/resume
-
-tests/
-├── contexts/            # Context-specific tests
-├── fixtures/            # Test data and helpers
-├── integration/         # End-to-end tests
-├── test_context_creation.py  # Factory function tests
-├── test_exceptions.py   # Exception handling tests
-├── test_types.py        # Type validation tests
-└── test_utils.py        # Utility function tests
-```
-=== Content from CLAUDE.md (repaired 2025-08-04T10:54:24+08:00) ===
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-## Project Overview
-
-This is a Python library (`cchooks`) for developing Claude Code hooks - user-defined shell commands that execute at various points in Claude Code's lifecycle. The library provides type-safe interfaces and utilities for all 8 hook types.
-
-## Architecture
-
-The codebase is organized into:
-
-- **Core Types**: `src/cchooks/types.py` - Type definitions and literals for hook events, tools, and decisions
-- **Base Classes**: `src/cchooks/contexts/base.py` - Abstract base classes for contexts and outputs
-- **Hook Contexts**: Individual files in `src/cchooks/contexts/` for each hook type
-- **Utilities**: `src/cchooks/utils.py` - JSON parsing and validation helpers
-- **Exceptions**: `src/cchooks/exceptions.py` - Custom exception hierarchy
-
-## Hook Types
-
-1. **PreToolUse**: Runs before tool execution, can approve/block tools
-2. **PostToolUse**: Runs after tool execution, can only provide feedback
-3. **Notification**: Processes notifications, no decision control
-4. **Stop**: Controls Claude's stopping behavior
-5. **SubagentStop**: Controls subagent stopping behavior
-6. **PreCompact**: Runs before transcript compaction
-7. **UserPromptSubmit**: After user prompt submission
-8. **SessionStart**: When Claude Code starts or resumes sessions
-9. **SessionEnd**: When Claude Code session ends
-
-## Development Commands
-
-### Setup
+### 环境设置
 ```bash
-# Install dependencies
+# 安装依赖
 make setup
-
-# Or with uv directly
+# 或直接使用 uv
 uv sync
 ```
 
-### Testing
+### 测试执行
 ```bash
-# Run all tests with coverage
+# 完整测试 (包含覆盖率)
 make test
 
-# Run tests without coverage (faster)
+# 快速测试 (无覆盖率)
 make test-quick
 
-# Run specific test file
+# 特定测试文件
 uv run pytest tests/contexts/test_pre_tool_use.py -v
-
-# Run single test
-uv run pytest tests/contexts/test_pre_tool_use.py::test_pre_tool_use_approve -v
 ```
 
-### Linting and Formatting
+### 代码质量检查
 ```bash
-# Check all code quality
+# 全面检查
 make check
 
-# Run individual checks
-make lint          # ruff check
-make type-check    # mypy
-make format-check  # ruff format --check
-make test          # pytest with coverage
-
-# Auto-fix issues
-make lint-fix      # ruff check --fix
-make format        # ruff format
+# 单独检查
+make lint          # ruff 代码检查
+make type-check    # pyright 类型检查
+make format        # ruff 代码格式化
 ```
 
-### Build and Distribution
+### 构建和分发
 ```bash
-# Build package
-make build
-
-# Clean build artifacts
-make clean
-
-# Full release preparation
-make release-check
+make build         # 构建包
+make clean         # 清理构建产物
+make release-check # 发布前检查
 ```
 
-### Development Utilities
-```bash
-# Install in development mode
-make install-dev
+## Testing Strategy
 
-# Show dependency tree
-make deps-tree
+### 测试架构
+- **单元测试**: 每个钩子上下文的独立测试
+- **集成测试**: 端到端工作流测试
+- **固定装置**: 现实场景的测试数据
+- **覆盖率**: pytest-cov 提供详细覆盖报告
 
-# Update lockfile
-make lock
-```
+### 钩子类型测试覆盖
+✅ PreToolUse - 工具执行前的审批/阻止决策
+✅ PostToolUse - 工具执行后的反馈和处理
+✅ Notification - 通知处理，无决策控制
+✅ UserPromptSubmit - 用户提示提交后处理
+✅ Stop - Claude停止行为控制
+✅ SubagentStop - 子代理停止控制
+✅ PreCompact - 转录压缩前处理
+✅ SessionStart - Claude Code启动或恢复会话
+✅ SessionEnd - Claude Code会话结束
 
-### Usage Pattern
+## Coding Standards
 
+### Python 约定
+- **类型提示**: 所有函数签名和公共属性必须有类型提示
+- **导入**: 按标准库、第三方、本地分组，用空行分隔
+- **命名**:
+  - 类: PascalCase (`PreToolUseContext`)
+  - 函数/方法: snake_case (`validate_fields`)
+  - 常量: UPPER_SNAKE_CASE (`HOOK_TYPE_MAP`)
+
+### 错误处理
+- 使用 `cchooks.exceptions` 中的自定义异常
+- 在上下文构造函数中验证输入数据
+- 提供包含字段名称的清晰错误消息
+
+### 钩子开发模式
+- 每种钩子都有专用的Context和Output类
+- 继承自 BaseHookContext/BaseHookOutput
+- 使用工厂函数 `create_context()` 实例化
+- 遵循Claude Code集成的JSON输入/输出模式
+
+## AI Usage Guidelines
+
+### 开发最佳实践
+- 生成git提交消息时，遵循 "feat:", "fix:", "docs:", "refactor:" 等最佳实践
+- 在整个代码库中使用类型提示
+- 为所有新功能编写测试
+- 提交前运行 `make check`
+- 遵循现有命名约定和代码风格
+
+### 使用模式
 ```python
 from cchooks import create_context
 
-# Read from stdin automatically
+# 自动从stdin读取
 c = create_context()
 
-# Type-specific handling
+# 类型特定处理
 if isinstance(c, PreToolUseContext):
     if c.tool_name == "Write" and "password" in c.tool_input.get("file_path", ""):
-        c.output.simple_block("Refusing to write to password file")
+        c.output.deny("拒绝写入密码文件")
     else:
-        c.output.simple_approve()
+        c.output.allow("安全操作")
 ```
 
-## Input/Output Patterns
+### 输入/输出模式
+- **简单模式**: 退出码 (0=成功, 1=非阻塞错误, 2=阻塞错误)
+- **高级模式**: 包含 `continue`, `decision`, `reason` 字段的JSON
 
-### Simple Mode (Exit Codes)
-- `exit 0`: Success/approve
-- `exit 1`: Non-blocking error
-- `exit 2`: Blocking error
+## Change Log (Changelog)
 
-### Advanced Mode (JSON)
-- Use context-specific output methods
-- Each context provides specialized decision methods
-- JSON output includes `continue`, `decision`, `reason` fields
-
-## Project Structure
-
-```
-src/cchooks/
-├── __init__.py           # Main factory function create_context()
-├── types.py              # Type definitions and literals
-├── exceptions.py         # Custom exception classes
-├── utils.py              # JSON parsing utilities
-└── contexts/
-    ├── __init__.py       # Context exports
-    ├── base.py          # Abstract base classes
-    ├── pre_tool_use.py   # Pre-tool execution decisions
-    ├── post_tool_use.py  # Post-tool execution feedback
-    ├── notification.py   # Notification processing
-    ├── stop.py          # Stop behavior control
-    ├── subagent_stop.py  # Subagent stop control
-    └── pre_compact.py    # Pre-compaction processing
-
-tests/
-├── contexts/            # Context-specific tests
-├── fixtures/            # Test data and helpers
-├── integration/         # End-to-end tests
-├── test_context_creation.py  # Factory function tests
-├── test_exceptions.py   # Exception handling tests
-├── test_types.py        # Type validation tests
-└── test_utils.py        # Utility function tests
-```
-
-## Key Files to Understand
-
-- `src/cchooks/__init__.py`: Main entry point and factory function
-- `src/cchooks/contexts/pre_tool_use.py`: Most complex hook with approval decisions
-- `src/cchooks/types.py`: Complete type system for Claude Code integration
-- `docs/what-is-cc-hook.md`: Comprehensive documentation of Claude Code hooks
-
-## Development Best Practices
-
-- When generating git commit messages, follow patterns like "feat:", "fix:", "docs:", "refactor:" and other best practices
-- Use type hints throughout the codebase
-- Write tests for all new functionality
-- Run `make check` before committing changes
-- Follow existing naming conventions and code style
-- Document public APIs with clear docstrings
-=== End CLAUDE.md content ===
-
-=== Content from CRUSH.md (repaired 2025-08-04T10:54:24+08:00) ===
-# cchooks Development Guide
-
-## Project Overview
-Python library for developing Claude Code hooks - user-defined shell commands that execute at various points in Claude Code's lifecycle. Provides type-safe interfaces for 9 hook types.
-
-## Essential Commands
-
-### Testing
-- `make test` - Run all tests with coverage
-- `make test-quick` - Run tests without coverage (faster)
-- `uv run pytest tests/contexts/test_pre_tool_use.py -v` - Run specific test file
-- `uv run pytest tests/contexts/test_pre_tool_use.py::test_valid_context_creation -v` - Run single test
-
-### Code Quality
-- `make check` - Run all checks (lint, type-check, format, test)
-- `make lint` - Lint code (ruff check)
-- `make lint-fix` - Auto-fix linting issues
-- `make format` - Format code (ruff format)
-- `make type-check` - Type checking (mypy)
-
-### Build & Setup
-- `make setup` - Install dependencies
-- `uv sync` - Alternative dependency install
-- `make build` - Build package
-- `make clean` - Clean build artifacts
-
-## Hook Types & Usage
-
-### 9 Hook Types
-1. **PreToolUse**: Before tool execution, can approve/block
-2. **PostToolUse**: After tool execution, feedback only
-3. **Notification**: Process notifications, no decisions
-4. **Stop**: Control Claude stopping behavior
-5. **SubagentStop**: Control subagent stopping
-6. **PreCompact**: Before transcript compaction
-7. **UserPromptSubmit**: After user prompt submission
-8. **SessionStart**: When Claude Code starts or resumes sessions
-9. **SessionEnd**: When Claude Code session ends
-
-### Usage Pattern
-```python
-from cchooks import create_context
-
-c = create_context()
-
-if isinstance(c, PreToolUseContext):
-    if c.tool_name == "Write" and "password" in c.tool_input.get("file_path", ""):
-        c.output.simple_block("Refusing to write to password file")
-    else:
-        c.output.simple_approve()
-```
-
-## Code Style Guidelines
-
-### Python Conventions
-- **Type hints**: Required for all function signatures and public attributes
-- **Imports**: Group imports (stdlib, third-party, local) with blank lines
-- **Naming**:
-  - Classes: PascalCase (PreToolUseContext)
-  - Functions/Methods: snake_case (validate_fields)
-  - Constants: UPPER_SNAKE_CASE (HOOK_TYPE_MAP)
-  - Private: _single_underscore
-
-### Error Handling
-- Use custom exceptions from `cchooks.exceptions`
-- Validate input data in context constructors
-- Provide clear error messages with field names
-- Use `HookValidationError` for missing required fields
-
-### Testing Patterns
-- Test files: `test_*.py` in `tests/` directory
-- Test classes: `Test*`
-- Test methods: `test_*`
-- Use pytest fixtures for sample data
-- Mock stdin/stdout for I/O testing
-
-### Project Structure
-- Main module: `src/cchooks/`
-- Contexts: `src/cchooks/contexts/` (one file per hook type)
-- Tests: Mirror source structure in `tests/`
-- Type definitions: `src/cchooks/types.py`
-
-### Hook Development
-- Each hook has dedicated Context and Output classes
-- Inherit from BaseHookContext/BaseHookOutput
-- Validate required fields in constructor
-- Use factory function `create_context()` for instantiation
-- Follow JSON input/output patterns for Claude Code integration
-
-## Input/Output Patterns
-- **Simple Mode**: Exit codes (0=success, 1=non-blocking, 2=blocking)
-- **Advanced Mode**: JSON with `continue`, `decision`, `reason` fields
-
-## Key Files
-- `src/cchooks/__init__.py`: Main entry point and factory function
-- `src/cchooks/contexts/pre_tool_use.py`: Most complex hook with approval decisions
-- `src/cchooks/types.py`: Complete type system for Claude Code integration
-=== End CRUSH.md content ===
+### 2025-09-18 16:35:48 - AI上下文初始化
+- 创建完整项目结构索引
+- 生成模块结构图和导航面包屑
+- 完成90%文件扫描覆盖率
+- 识别9种钩子类型完整实现
+- 建立测试策略和代码标准文档

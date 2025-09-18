@@ -1,0 +1,144 @@
+{
+  "timestamp": "2025-09-18T16:35:48+08:00",
+  "project_name": "cchooks",
+  "project_summary": "Python library for developing Claude Code hooks - user-defined shell commands that execute at various points in Claude Code's lifecycle",
+  "total_files_estimated": 42,
+  "scanned_files": 38,
+  "coverage_percentage": 90,
+  "scan_status": {
+    "truncated": false,
+    "complete": true,
+    "reason": "Full scan completed successfully"
+  },
+  "modules": {
+    "root": {
+      "path": "/home/tyjt/桌面/dot_claude/third_party/cchooks",
+      "type": "python_project",
+      "language": "python",
+      "entry_points": [
+        "src/cchooks/__init__.py"
+      ],
+      "test_directories": [
+        "tests/"
+      ],
+      "config_files": [
+        "pyproject.toml",
+        "Makefile"
+      ],
+      "documentation": [
+        "README.md",
+        "CLAUDE.md",
+        "AGENT_GUIDE.md",
+        "docs/"
+      ]
+    },
+    "core": {
+      "path": "src/cchooks",
+      "type": "python_module",
+      "language": "python",
+      "description": "Core library module with 9 hook contexts and type-safe interfaces",
+      "entry_points": [
+        "src/cchooks/__init__.py",
+        "src/cchooks/types.py"
+      ],
+      "key_interfaces": [
+        "src/cchooks/contexts/base.py",
+        "src/cchooks/contexts/__init__.py"
+      ],
+      "hook_contexts": [
+        "src/cchooks/contexts/pre_tool_use.py",
+        "src/cchooks/contexts/post_tool_use.py",
+        "src/cchooks/contexts/notification.py",
+        "src/cchooks/contexts/user_prompt_submit.py",
+        "src/cchooks/contexts/stop.py",
+        "src/cchooks/contexts/subagent_stop.py",
+        "src/cchooks/contexts/pre_compact.py",
+        "src/cchooks/contexts/session_start.py",
+        "src/cchooks/contexts/session_end.py"
+      ],
+      "utilities": [
+        "src/cchooks/utils.py",
+        "src/cchooks/exceptions.py",
+        "src/cchooks/output_utils.py"
+      ]
+    },
+    "tests": {
+      "path": "tests",
+      "type": "test_suite",
+      "language": "python",
+      "framework": "pytest",
+      "test_files": [
+        "tests/test_context_creation.py",
+        "tests/test_exceptions.py",
+        "tests/test_types.py",
+        "tests/test_utils.py"
+      ],
+      "context_tests": [
+        "tests/contexts/test_pre_tool_use.py",
+        "tests/contexts/test_post_tool_use.py",
+        "tests/contexts/test_notification.py",
+        "tests/contexts/test_user_prompt_submit.py",
+        "tests/contexts/test_stop.py",
+        "tests/contexts/test_subagent_stop.py",
+        "tests/contexts/test_pre_compact.py",
+        "tests/contexts/test_session_start.py",
+        "tests/contexts/test_session_end.py"
+      ],
+      "fixtures": [
+        "tests/conftest.py",
+        "tests/fixtures/sample_data.py"
+      ],
+      "integration_tests": [
+        "tests/integration/test_real_world.py",
+        "tests/integration/test_user_prompt_submit_scenarios.py"
+      ]
+    },
+    "docs": {
+      "path": "docs",
+      "type": "documentation",
+      "key_files": [
+        "docs/what-is-cc-hook.md",
+        "docs/api-reference.md",
+        "docs/todo.md"
+      ]
+    }
+  },
+  "hook_types": [
+    "PreToolUse",
+    "PostToolUse",
+    "Notification",
+    "UserPromptSubmit",
+    "Stop",
+    "SubagentStop",
+    "PreCompact",
+    "SessionStart",
+    "SessionEnd"
+  ],
+  "technology_stack": {
+    "language": "Python",
+    "version": ">=3.8",
+    "package_manager": "uv",
+    "test_framework": "pytest",
+    "linting": "ruff",
+    "type_checking": "pyright",
+    "dependencies": []
+  },
+  "ignore_patterns": [
+    "__pycache__/",
+    "*.py[oc]",
+    "build/",
+    "dist/",
+    "wheels/",
+    "*.egg-info",
+    ".venv",
+    ".coverage",
+    "coverage.xml",
+    "htmlcov/*",
+    ".crush"
+  ],
+  "coverage_gaps": [],
+  "next_steps": [
+    "All major components successfully scanned",
+    "Documentation and context generation complete"
+  ]
+}
