@@ -316,7 +316,7 @@ def main() -> None:
 
         # Validate event type
         if context.hook_event_name != "{event_type.value}":
-            context.output.fail(
+            context.output.exit_non_block(
                 f"Expected {event_type.value} event, got {{context.hook_event_name}}"
             )
             return

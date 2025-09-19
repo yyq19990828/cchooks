@@ -383,7 +383,8 @@ def _create_generatehook_parser(subparsers) -> argparse.ArgumentParser:
 
     parser.add_argument(
         "output",
-        help="Output file path for generated script"
+        nargs="?",
+        help="Output file path for generated script (default: .claude/hooks/{event}/{template-name}.py)"
     )
 
     # Optional arguments

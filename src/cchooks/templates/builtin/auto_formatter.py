@@ -242,7 +242,7 @@ def main() -> None:
 
         # Validate event type
         if not isinstance(context, PostToolUseContext):
-            context.output.fail(
+            context.output.exit_non_block(
                 f"Expected PostToolUse event, got {context.hook_event_name}"
             )
             return
@@ -252,12 +252,7 @@ def main() -> None:
 
     except Exception as e:
         # Handle unexpected errors
-        print(json.dumps({
-            "continue": False,
-            "stopReason": f"Auto-formatter error: {str(e)}",
-            "suppressOutput": False
-        }))
-        sys.exit(1)
+        context.output.exit_non_block(f"Auto-formatter error: {str(e)}")
 
 
 if __name__ == "__main__":

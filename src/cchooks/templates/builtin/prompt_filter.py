@@ -707,7 +707,7 @@ def create_detection_summary(detections: List[DetectionResult]) -> str:
                 for rec in recommendations:
                     message += f"• {rec}\\n"
 
-            context.output.fail(message)
+            context.output.exit_non_block(message)
 
         elif DETECTION_MODE == "filter":
             # Filter (redact) sensitive information

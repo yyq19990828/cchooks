@@ -382,8 +382,7 @@ def check_branch_restrictions() -> bool:
         if AUTO_ADD:
             success = add_files_to_git(files_to_commit)
             if not success:
-                context.output.fail("Failed to add files to git")
-                return
+                context.output.exit_non_block("Failed to add files to git")
 
         # Generate commit message
         commit_message = generate_commit_message(context, files_to_commit)
@@ -391,8 +390,7 @@ def check_branch_restrictions() -> bool:
         # Commit changes
         success = commit_changes(commit_message)
         if not success:
-            context.output.fail("Failed to commit changes")
-            return
+            context.output.exit_non_block("Failed to commit changes")
 
         # Push changes if auto-push is enabled
         pushed = False

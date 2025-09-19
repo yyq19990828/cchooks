@@ -84,11 +84,17 @@ def main(args: argparse.Namespace) -> int:
             print(f"错误: {args.event} 事件类型需要 --matcher 参数", file=sys.stderr)
             return 1
 
-        # 4. 生成脚本
+        # 4. 处理默认输出路径
+        output_path = args.output
+        if not output_path:
+            # 生成默认路径: .claude/hooks/{event}/{template-name}.py
+            output_path = f".claude/hooks/{args.event}/{args.type}.py"
+
+        # 5. 生成脚本
         result = generate_hook_script(
             template_type=args.type,
             event_type=args.event,
-            output_path=args.output,
+            output_path=output_path,
             customization=customization,
             matcher=getattr(args, 'matcher', None),
             timeout=getattr(args, 'timeout', None),
@@ -99,8 +105,8 @@ def main(args: argparse.Namespace) -> int:
         if not result.success:
             output_data = {
                 "success": False,
-                "message": result.message,
-                "errors": result.errors
+                "message": result.error_message,
+                "errors": []
             }
             _print_output(output_data, getattr(args, 'format', 'table'))
             return 1

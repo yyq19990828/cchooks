@@ -401,7 +401,7 @@ def get_modified_files(context) -> List[str]:
                 message += f"\\n\\nQuality Report:\\n{{report}}"
 
             if should_fail:
-                context.output.fail(message)
+                context.output.exit_non_block(message)
             else:
                 context.output.continue_flow(message)
 '''

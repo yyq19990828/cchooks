@@ -580,7 +580,6 @@ def handle_security_validation(context: PreToolUseContext) -> None:
         return """# Cast to specific context type for type safety
 if not isinstance(context, PreToolUseContext):
     context.output.exit_non_block("Invalid context type for security guard")
-    return
 
 # Run security validation
 handle_security_validation(context)"""
