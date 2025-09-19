@@ -4,8 +4,8 @@ import json
 import sys
 from typing import Any, Dict, NoReturn, Optional
 
-from .base import BaseHookContext, BaseHookOutput
 from ..exceptions import HookValidationError
+from .base import BaseHookContext, BaseHookOutput
 
 
 class UserPromptSubmitContext(BaseHookContext):

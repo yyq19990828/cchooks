@@ -31,6 +31,9 @@ Hook Types:
 import sys
 from typing import TextIO, Union
 
+# Version of the package
+__version__ = "0.1.0"
+
 from .contexts import (
     BaseHookContext,
     BaseHookOutput,

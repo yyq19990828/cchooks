@@ -441,11 +441,16 @@ class TestFutureFeatures:
         settings_file = claude_dir / "settings.json"
         settings_file.write_text('{"hooks": {}}')
 
-        # 使用patch模拟find_project_root返回我们的测试项目
+        # 模拟一个空的用户主目录
+        fake_home = tmp_path / "fake_home"
+        fake_home.mkdir()
+
+        # 使用patch模拟find_project_root和get_home_directory
         with patch('cchooks.utils.file_operations.find_project_root', return_value=project_root):
-            files = discover_settings_files()
-            assert len(files) == 1
-            assert files[0] == ('project', settings_file)
+            with patch('cchooks.utils.file_operations.get_home_directory', return_value=fake_home):
+                files = discover_settings_files()
+                assert len(files) == 1
+                assert files[0] == ('project', settings_file)
 
     def test_project_root_discovery(self, tmp_path):
         """测试项目根目录发现功能"""
@@ -460,3 +465,168 @@ class TestFutureFeatures:
 
         result = find_project_root(sub_dir)
         assert result == project_root
+
+
+# TDD失败测试类 - 展示未实现的高级功能
+class TestUnimplementedFeatures:
+    """
+    这些测试设计为失败，展示期望的高级功能
+    当相关组件实现后，这些测试应该通过
+    """
+
+    def test_settings_manager_auto_discovery(self, tmp_path):
+        """测试SettingsManager的自动文件发现功能（会失败）"""
+        pytest.skip("SettingsManager未实现 - 这是预期的TDD失败")
+
+        # 当SettingsManager实现后，此测试应该如下工作：
+        # from cchooks.services.settings_manager import SettingsManager
+        #
+        # manager = SettingsManager()
+        # settings_path = manager.discover_settings_file()
+        # assert settings_path is not None
+
+    def test_settings_manager_multi_level_merge(self, tmp_path):
+        """测试SettingsManager的多级设置合并功能（会失败）"""
+        pytest.skip("SettingsManager未实现 - 这是预期的TDD失败")
+
+        # 创建多级设置结构
+        project_root = tmp_path / "project"
+        user_home = tmp_path / "user_home"
+
+        # 项目级设置
+        project_claude = project_root / ".claude"
+        project_claude.mkdir(parents=True)
+        project_settings = project_claude / "settings.json"
+        project_settings.write_text(json.dumps({
+            "hooks": {
+                "PreToolUse": [
+                    {"matcher": "Bash", "hooks": [{"type": "command", "command": "project_check.py"}]}
+                ]
+            }
+        }))
+
+        # 用户级设置
+        user_claude = user_home / ".claude"
+        user_claude.mkdir(parents=True)
+        user_settings = user_claude / "settings.json"
+        user_settings.write_text(json.dumps({
+            "hooks": {
+                "PreToolUse": [
+                    {"matcher": "", "hooks": [{"type": "command", "command": "user_global.py"}]}
+                ],
+                "PostToolUse": [
+                    {"matcher": "", "hooks": [{"type": "command", "command": "user_post.py"}]}
+                ]
+            }
+        }))
+
+        # 当SettingsManager实现后，此测试应该验证：
+        # 1. 项目级设置覆盖用户级设置
+        # 2. 正确的优先级处理
+        # 3. 智能合并不同事件类型的hooks
+
+    def test_settings_manager_transactional_updates(self, tmp_path):
+        """测试SettingsManager的事务性更新功能（会失败）"""
+        pytest.skip("SettingsManager未实现 - 这是预期的TDD失败")
+
+        # 当SettingsManager实现后，此测试应该验证：
+        # 1. 原子性更新操作
+        # 2. 失败时的回滚机制
+        # 3. 并发安全性
+
+    def test_hook_validator_integration(self, tmp_path):
+        """测试HookValidator与Settings操作的集成（会失败）"""
+        pytest.skip("HookValidator未实现 - 这是预期的TDD失败")
+
+        # 创建有效和无效的hook配置
+        settings_file = tmp_path / "settings.json"
+        invalid_settings = {
+            "hooks": {
+                "PreToolUse": [
+                    {
+                        "matcher": "Bash",
+                        "hooks": [
+                            {"type": "invalid_type", "command": "test.py"},  # 无效类型
+                            {"type": "command"},  # 缺少command字段
+                            {"type": "command", "command": "valid.py", "extra": "field"}  # 额外字段
+                        ]
+                    }
+                ]
+            }
+        }
+
+        # 当HookValidator实现后，此测试应该验证：
+        # 1. 自动hook配置验证
+        # 2. 详细的验证错误报告
+        # 3. 警告和建议功能
+
+    def test_advanced_file_operations_with_locking(self, tmp_path):
+        """测试高级文件操作的并发锁定功能（会失败）"""
+        pytest.skip("高级文件锁定未实现 - 这是预期的TDD失败")
+
+        # 当高级文件操作实现后，此测试应该验证：
+        # 1. 文件级别的读写锁
+        # 2. 跨进程的并发安全性
+        # 3. 锁定超时和恢复
+
+    def test_settings_validation_with_schemas(self, tmp_path):
+        """测试基于Schema的设置验证功能（会失败）"""
+        pytest.skip("Schema验证未实现 - 这是预期的TDD失败")
+
+        # 当Schema验证系统实现后，此测试应该验证：
+        # 1. JSON Schema验证
+        # 2. 自定义验证规则
+        # 3. 向前兼容性检查
+
+    def test_settings_migration_system(self, tmp_path):
+        """测试设置文件迁移系统（会失败）"""
+        pytest.skip("迁移系统未实现 - 这是预期的TDD失败")
+
+        # 创建旧版本格式的设置文件
+        old_format_settings = tmp_path / "old_settings.json"
+        old_format_settings.write_text(json.dumps({
+            "version": "1.0",
+            "hooks": {
+                # 旧格式的hook配置
+            }
+        }))
+
+        # 当迁移系统实现后，此测试应该验证：
+        # 1. 自动检测旧版本格式
+        # 2. 安全的格式迁移
+        # 3. 备份和回滚功能
+
+    def test_performance_with_large_settings_files(self, tmp_path):
+        """测试大型设置文件的性能优化（会失败）"""
+        pytest.skip("性能优化未实现 - 这是预期的TDD失败")
+
+        # 创建包含大量hooks的设置文件
+        large_settings = {
+            "hooks": {}
+        }
+
+        # 生成1000个不同事件类型的hooks
+        for event_type in ["PreToolUse", "PostToolUse", "Notification"]:
+            large_settings["hooks"][event_type] = []
+            for i in range(100):
+                large_settings["hooks"][event_type].append({
+                    "matcher": f"Tool{i}",
+                    "hooks": [
+                        {"type": "command", "command": f"hook_{i}_{j}.py"}
+                        for j in range(10)
+                    ]
+                })
+
+        # 当性能优化实现后，此测试应该验证：
+        # 1. 快速加载大型设置文件（<100ms）
+        # 2. 增量更新支持
+        # 3. 内存优化
+
+    def test_cross_platform_compatibility(self, tmp_path):
+        """测试跨平台兼容性功能（会失败）"""
+        pytest.skip("跨平台特性未完全实现 - 这是预期的TDD失败")
+
+        # 当跨平台功能完全实现后，此测试应该验证：
+        # 1. Windows路径处理
+        # 2. 不同操作系统的权限模型
+        # 3. 文件编码处理

@@ -1,6 +1,6 @@
 """Type definitions for Claude Code hooks."""
 
-from typing import Any, Dict, Literal, Union, Optional
+from typing import Any, Dict, Literal, Optional, Union
 
 # Hook event types
 HookEventType = Literal[

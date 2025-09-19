@@ -23,6 +23,7 @@ A lightweight Python Toolkit that makes building Claude Code hooks as simple as 
 
 ## Features
 
+### Python Hook SDK
 - **One-liner setup**: `create_context()` handles all the boilerplate
 - **Zero config**: Automatic JSON parsing and validation from stdin
 - **Smart detection**: Automatically figures out which hook you're building
@@ -31,15 +32,56 @@ A lightweight Python Toolkit that makes building Claude Code hooks as simple as 
 - **Type-safe**: Full type hints and IDE autocompletion
 - **System Message Support**: Provide optional warning messages to users for all decision-making hooks
 
+### CLI Management Tools ✨ **NEW**
+- **9 CLI commands**: Complete hook lifecycle management (`addhook`, `updatehook`, `removehook`, `listhooks`, `validatehooks`)
+- **Template system**: Generate hooks from 10 built-in templates or create custom templates
+- **Zero dependencies**: Pure Python standard library, cross-platform support
+- **Claude Code compliance**: Strict format validation and settings preservation
+- **Multiple output formats**: JSON, table, YAML for both human and machine consumption
+
 ## Installation
 
+### Using uv (recommended)
 ```bash
-pip install cchooks
-# or
 uv add cchooks
 ```
 
+### Using pip
+```bash
+pip install cchooks
+```
+
+### Development installation
+```bash
+git clone https://github.com/gowaylee/cchooks.git
+cd cchooks
+uv sync --dev
+```
+
 ## Quick Start
+
+### Using CLI Tools (Recommended)
+
+The fastest way to get started is with the built-in CLI tools:
+
+```bash
+# Check current hook status
+cchooks listhooks
+
+# Generate a security guard hook from template
+cchooks generatehook security-guard PreToolUse ./hooks/security.py \
+  --matcher "Bash|Write" --add-to-settings
+
+# Add a simple session startup message
+cchooks addhook --event SessionStart --command "echo 'Claude Code started!'" --level project
+
+# Validate all hook configurations
+cchooks validatehooks
+```
+
+**Want more CLI examples?** Check the [CLI Guide](docs/cli-guide.md) for complete documentation.
+
+### Writing Custom Hooks
 
 Build a PreToolUse hook that blocks dangerous file writes:
 
@@ -519,6 +561,30 @@ if c.tool_name == "Write":
 
     c.output.exit_success()
 ```
+
+## Documentation
+
+### CLI Tools
+- **[CLI Guide](docs/cli-guide.md)** - Complete CLI reference with examples
+- **[CLI Quick Reference](docs/cli-reference.md)** - Command cheat sheet
+
+### Python SDK
+- **[API Reference](docs/api-reference.md)** - Complete Python API documentation
+- **[Hook Examples](examples/)** - Real-world hook implementations
+
+### Built-in Templates
+- **Security Guard** - Multi-tool security protection
+- **Auto Formatter** - Automatic code formatting (black, isort)
+- **Auto Linter** - Code quality checking (ruff, flake8, pylint)
+- **Git Auto Commit** - Automatic git operations
+- **Permission Logger** - Tool usage logging and auditing
+- **Desktop Notifier** - Cross-platform notifications
+- **Task Manager** - Resource cleanup and management
+- **Prompt Filter** - Sensitive information detection
+- **Context Loader** - Project context loading
+- **Cleanup Handler** - Session cleanup management
+
+Use `cchooks listtemplates --show-config` to see all available templates and their customization options.
 
 ## Development
 

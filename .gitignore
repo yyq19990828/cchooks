@@ -16,3 +16,7 @@ htmlcov/*
 
 # Agent
 .crush
+
+# log
+*.log
+logs/

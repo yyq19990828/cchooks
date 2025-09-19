@@ -885,3 +885,16 @@ def format_template_list(
     """
     formatter = create_formatter(format_type, file)
     return formatter.format_template_list(templates, total_count, by_source, by_event)
+
+
+def format_error_message(command_name: str, error_message: str) -> str:
+    """格式化错误消息的便利函数。
+
+    Args:
+        command_name: 命令名称
+        error_message: 错误消息
+
+    Returns:
+        格式化的错误消息
+    """
+    return f"{command_name}: {error_message}"

@@ -1,14 +1,16 @@
 [project]
 name = "cchooks"
-version = "0.1.4"
-description = "A Python utility module for claude-code hook development"
-readme = "README.md"
-requires-python = ">=3.8"
+version = "0.1.0"
+description = "Claude Code Hook SDK for Python - A lightweight toolkit for building Claude Code hooks"
 authors = [
-    {name = "Haoyuan Li", email = "haoyuanli0506@gmail.com"},
+    {name = "Haoyuan Li", email = "haoyuan@example.com"}
 ]
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+keywords = ["claude-code", "hooks", "ai", "automation", "python"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
@@ -19,19 +21,116 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: Utilities",
+    "Topic :: System :: System Shells",
+    "Topic :: Utilities"
 ]
+
+# 零外部运行时依赖 - 只依赖Python标准库
 dependencies = []
 
-[dependency-groups]
+[project.urls]
+Homepage = "https://github.com/gowaylee/cchooks"
+Repository = "https://github.com/gowaylee/cchooks"
+Documentation = "https://github.com/gowaylee/cchooks/blob/main/docs/api-reference.md"
+Issues = "https://github.com/gowaylee/cchooks/issues"
+
+[project.optional-dependencies]
 dev = [
-    "cchooks",
-    "pytest",
-    "pytest-cov",
-    "pytest-mock",
-    "ruff",
-    "pyright",
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "pytest-mock>=3.10",
+    "ruff>=0.1.0",
+    "pyright>=1.1.0",
 ]
+test = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "pytest-mock>=3.10",
+]
+
+[project.scripts]
+cchooks = "cchooks.cli.main:main"
+cc_addhook = "cchooks.cli.main:cc_addhook"
+cc_updatehook = "cchooks.cli.main:cc_updatehook"
+cc_removehook = "cchooks.cli.main:cc_removehook"
+cc_listhooks = "cchooks.cli.main:cc_listhooks"
+cc_validatehooks = "cchooks.cli.main:cc_validatehooks"
+cc_generatehook = "cchooks.cli.main:cc_generatehook"
+cc_registertemplate = "cchooks.cli.main:cc_registertemplate"
+cc_listtemplates = "cchooks.cli.main:cc_listtemplates"
+cc_unregistertemplate = "cchooks.cli.main:cc_unregistertemplate"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "pytest-mock>=3.10",
+    "ruff>=0.1.0",
+    "pyright>=1.1.0",
+]
+
+[tool.uv.sources]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cchooks"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/tests",
+    "/docs",
+    "/examples",
+    "/README.md",
+    "/LICENSE",
+    "/pyproject.toml",
+]
+
+[tool.ruff]
+target-version = "py38"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+    "F401",  # imported but unused (allow for now)
+    "F841",  # variable assigned but unused
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"tests/**/*" = ["B011"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.pyright]
+include = ["src", "tests"]
+exclude = ["**/__pycache__"]
+pythonVersion = "3.8"
+typeCheckingMode = "basic"
+reportMissingImports = true
+reportMissingTypeStubs = false
+reportUnusedImport = true
+reportUnusedClass = "warning"
+reportUnusedFunction = "warning"
+reportDuplicateImport = "error"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -43,16 +142,11 @@ addopts = [
     "--strict-config",
     "--cov=src/cchooks",
     "--cov-report=term-missing",
-    "--cov-report=html",
     "--cov-report=xml",
-    "-v"
+    "--cov-report=html",
+    "--cov-fail-under=80",
 ]
-
-[tool.uv.sources]
-cchooks = { workspace = true }
-
-[tool.pyright]
-include = ["src"]
-exclude = ["**/__pycache__", "**/.*"]
-venvPath = "."
-venv = ".venv"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+]

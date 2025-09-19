@@ -5,8 +5,10 @@ import sys
 from abc import ABC, abstractmethod
 from typing import Any, Dict, NoReturn, Optional, TextIO
 
+from .. import types as cchooks_types
 from ..exceptions import ParseError
-from ..types import CompleteOutput, HookEventType, CommonOutput
+from ..types import CommonOutput, CompleteOutput
+from ..types.enums import HookEventType
 
 
 class BaseHookContext(ABC):

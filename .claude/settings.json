@@ -23,6 +23,31 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo test"
+          },
+          {
+            "type": "command",
+            "command": "echo test"
+          },
+          {
+            "type": "command",
+            "command": "echo"
+          },
+          {
+            "type": "command",
+            "command": "echo test"
+          },
+          {
+            "type": "command",
+            "command": "echo"
+          }
+        ]
       }
     ]
   }

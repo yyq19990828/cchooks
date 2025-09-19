@@ -93,7 +93,7 @@ def handle_context_error(error: Exception, file: TextIO = sys.stderr) -> NoRetur
         error: Exception from create_context()
         file: Output file for error message
     """
-    from .exceptions import ParseError, InvalidHookTypeError, HookValidationError
+    from .exceptions import HookValidationError, InvalidHookTypeError, ParseError
 
     if isinstance(error, ParseError):
         handle_parse_error(error, file)

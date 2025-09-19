@@ -2,9 +2,9 @@
 
 from typing import Any, Dict, NoReturn, Optional
 
-from .base import BaseHookContext, BaseHookOutput
 from ..exceptions import HookValidationError
 from ..types import PreCompactTrigger
+from .base import BaseHookContext, BaseHookOutput
 
 
 class PreCompactContext(BaseHookContext):

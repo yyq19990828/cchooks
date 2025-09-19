@@ -23,12 +23,16 @@ from cchooks.types.enums import HookEventType, SettingsLevel
 try:
     from cchooks.models.hook_config import HookConfiguration
     from cchooks.models.validation import ValidationResult, ValidationError
-    from cchooks.services.hook_validator import HookValidator
 except ImportError:
     # TDD阶段：模拟需要实现的类
     HookConfiguration = Mock
     ValidationResult = Mock
     ValidationError = Mock
+
+# HookValidator还未实现，单独处理
+try:
+    from cchooks.services.hook_validator import HookValidator
+except ImportError:
     HookValidator = Mock
 
 
